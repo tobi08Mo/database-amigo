@@ -124,11 +124,16 @@ export default function Wallet() {
     }, 15000);
   }, [user]);
 
+  // Resume polling if invoice exists on mount
   useEffect(() => {
+    if (invoice && !invoiceExpired) {
+      setTab("deposit");
+      startStatusPolling(invoice.txn_id);
+    }
     return () => {
       if (statusInterval.current) clearInterval(statusInterval.current);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user) { navigate("/"); return null; }
 
