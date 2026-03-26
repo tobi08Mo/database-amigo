@@ -4,8 +4,7 @@ import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
 import { getCurrentUser } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
-
-const LTC_EUR_RATE = 76.50;
+import { useLtcEurRate } from "@/hooks/useLtcEurRate";
 
 interface InvoiceData {
   txn_id: string;
@@ -86,6 +85,7 @@ function DepositTimer({ expireUtc, onExpired }: { expireUtc: string; onExpired: 
 export default function Wallet() {
   const user = getCurrentUser();
   const navigate = useNavigate();
+  const { rate: LTC_EUR_RATE } = useLtcEurRate();
   const [ltcBalance, setLtcBalance] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingBalance, setLoadingBalance] = useState(true);
