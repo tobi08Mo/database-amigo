@@ -101,6 +101,27 @@ export default function Wallet() {
     }
   }, []);
 
+  const creditAndClear = useCallback((ltcAmount: number) => {
+    // Prevent double-credit: check flag
+    const creditKey = "bm_invoice_credited";
+    if (localStorage.getItem(creditKey) === "1") return;
+    localStorage.setItem(creditKey, "1");
+
+    if (ltcAmount > 0 && user) {
+      const freshUser = getCurrentUser();
+      const currentBalance = freshUser ? freshUser.ltcBalance : user.ltcBalance;
+      updateUser(user.username, { ltcBalance: currentBalance + ltcAmount });
+    }
+    localStorage.removeItem("bm_active_invoice");
+    if (statusInterval.current) {
+      clearInterval(statusInterval.current);
+      statusInterval.current = null;
+    }
+    alert("✓ Zahlung empfangen! Dein Guthaben wurde aktualisiert.");
+    localStorage.removeItem(creditKey);
+    window.location.reload();
+  }, [user]);
+
   const startStatusPolling = useCallback((txnId: string) => {
     if (statusInterval.current) clearInterval(statusInterval.current);
     statusInterval.current = setInterval(async () => {
@@ -108,21 +129,22 @@ export default function Wallet() {
         const { data } = await supabase.functions.invoke("plisio-gateway", {
           body: { action: "check_status", txn_id: txnId },
         });
-        if (data?.status === "completed" || data?.status === "mismatch") {
+        const st = data?.status;
+        if (st === "completed" || st === "confirmed" || st === "mismatch") {
+          const ltcAmount = parseFloat(data?.amount || "0");
+          creditAndClear(ltcAmount);
+        } else if (st === "expired" || st === "error" || st === "cancelled") {
           clearInterval(statusInterval.current!);
           statusInterval.current = null;
-          const ltcAmount = parseFloat(data?.amount || "0");
-          if (ltcAmount > 0 && user) {
-            updateUser(user.username, { ltcBalance: user.ltcBalance + ltcAmount });
-          }
-          alert("✓ Zahlung empfangen! Dein Guthaben wurde aktualisiert.");
-          window.location.reload();
+          localStorage.removeItem("bm_active_invoice");
+          setInvoice(null);
+          setInvoiceExpired(true);
         }
       } catch {
         // Silently retry
       }
     }, 15000);
-  }, [user]);
+  }, [creditAndClear]);
 
   // Resume polling if invoice exists on mount
   useEffect(() => {
