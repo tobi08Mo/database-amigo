@@ -23,7 +23,7 @@ export default function Profile() {
         <div style={{ display: "flex", gap: 16 }}>
           <div style={{ width: 220, flexShrink: 0 }}>
             <div className="bm-card" style={{ padding: 14, textAlign: "center" }}>
-              <div style={{ width: 70, height: 70, margin: "0 auto 10px", background: "hsl(0 0% 18%)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>👤</div>
+              <div style={{ width: 70, height: 70, margin: "0 auto 10px", background: "hsl(0 0% 18%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>👤</div>
               <div style={{ fontSize: 12 }}>
                 <div><span className="bm-dim">Beigetreten:</span> {user.joinDate}</div>
                 <div><span className="bm-dim">Verkäufe:</span> {user.totalSales}</div>

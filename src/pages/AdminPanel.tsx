@@ -74,7 +74,7 @@ export default function AdminPanel() {
       <RetroHeader />
       <div className="bm-page">
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          <div style={{ width: 6, height: 22, background: "hsl(0 70% 50%)", borderRadius: 3 }} />
+          <div style={{ width: 6, height: 22, background: "hsl(0 70% 50%)" }} />
           <h1 style={{ margin: 0, color: "hsl(0 70% 65%)" }}>Admin Panel</h1>
         </div>
 
