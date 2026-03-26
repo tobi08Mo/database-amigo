@@ -47,8 +47,30 @@ export default function Dashboard() {
   if (!user) { navigate("/"); return null; }
 
   const loadData = async () => {
+    if (!username) return;
     // Load orders
     const { data: orderData } = await supabase
+      .from("orders")
+      .select("*")
+      .or(`buyer.eq.${username},seller.eq.${username}`)
+      .order("created_at", { ascending: false });
+    setOrders((orderData as DBOrder[]) || []);
+
+    // Load listings
+    const { data: listingData } = await supabase
+      .from("listings")
+      .select("id, title, price_eur, price_ltc, category, active")
+      .eq("seller", username);
+    setListings((listingData as DBListing[]) || []);
+
+    // Load wallet balance
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("ltc_balance")
+      .eq("username", username)
+      .single();
+    setWalletBalance(wallet?.ltc_balance || 0);
+  };
       .from("orders")
       .select("*")
       .or(`buyer.eq.${user.username},seller.eq.${user.username}`)
