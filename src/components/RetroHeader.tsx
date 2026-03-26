@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getCurrentUser, logout, getMessages, isCurrentUserAdmin } from "@/lib/store";
+import { getCurrentUser, logout, isCurrentUserAdmin } from "@/lib/store";
 import { useNavigate } from "react-router-dom";
 
 const IconHome = () => (
@@ -12,10 +11,10 @@ const IconHome = () => (
 
 const IconListings = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7" rx="1" />
-    <rect x="14" y="3" width="7" height="7" rx="1" />
-    <rect x="3" y="14" width="7" height="7" rx="1" />
-    <rect x="14" y="14" width="7" height="7" rx="1" />
+    <rect x="3" y="3" width="7" height="7" rx="0" />
+    <rect x="14" y="3" width="7" height="7" rx="0" />
+    <rect x="3" y="14" width="7" height="7" rx="0" />
+    <rect x="14" y="14" width="7" height="7" rx="0" />
   </svg>
 );
 
@@ -25,10 +24,11 @@ const IconPlus = () => (
   </svg>
 );
 
-const IconInbox = () => (
+const IconWallet = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-    <polyline points="22,6 12,13 2,6" />
+    <rect x="2" y="6" width="20" height="14" rx="0" />
+    <path d="M2 6l0-1a2 2 0 012-2h12a2 2 0 012 2v1" />
+    <circle cx="17" cy="13" r="1.5" />
   </svg>
 );
 
@@ -43,7 +43,6 @@ export default function RetroHeader() {
   const user = getCurrentUser();
   const navigate = useNavigate();
   const location = useLocation();
-  const unread = user ? getMessages().filter(m => m.to === user.username && !m.read).length : 0;
   const isAdmin = isCurrentUserAdmin();
 
   const handleLogout = () => {
@@ -68,9 +67,7 @@ export default function RetroHeader() {
           <Link to="/search">Suche</Link>
           <Link to="/create-listing">Verkaufen</Link>
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/messages">
-            Inbox{unread > 0 && <span style={{ color: "hsl(40 80% 60%)" }}> ({unread})</span>}
-          </Link>
+          <Link to="/wallet">Wallet</Link>
           {isAdmin && (
             <Link to="/admin" style={{ color: "hsl(0 70% 65%)" }}>Admin</Link>
           )}
@@ -95,12 +92,9 @@ export default function RetroHeader() {
           <span className="bm-bottom-icon-plus"><IconPlus /></span>
           <span>Verkaufen</span>
         </Link>
-        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`}>
-          <span style={{ position: "relative" }}>
-            <IconInbox />
-            {unread > 0 && <span className="bm-bottom-badge">{unread}</span>}
-          </span>
-          <span>Inbox</span>
+        <Link to="/wallet" className={`bm-bottom-nav-item ${isActive("/wallet") ? "active" : ""}`}>
+          <IconWallet />
+          <span>Wallet</span>
         </Link>
         <Link to="/dashboard" className={`bm-bottom-nav-item ${isActive("/dashboard") ? "active" : ""}`}>
           <IconProfile />
