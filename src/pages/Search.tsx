@@ -12,53 +12,34 @@ export default function Search() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.toLowerCase();
-    const all = getProducts().filter(p => p.active);
-    const found = all.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.seller.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q)
-    );
-    setResults(found);
+    setResults(getProducts().filter(p => p.active && (p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.seller.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))));
     setSearched(true);
   };
 
   return (
-    <div>
+    <div className="bm-bg" style={{ minHeight: "100vh" }}>
       <RetroHeader />
-      <div className="retro-page">
-        <h1>🔍 SEARCH LISTINGS</h1>
-        <div className="retro-card" style={{ padding: 12, marginBottom: 12 }}>
-          <form onSubmit={handleSearch}>
-            <table style={{ width: "100%" }}>
-              <tbody>
-                <tr>
-                  <td style={{ paddingRight: 8 }}>
-                    <input className="retro-input" placeholder="Search by title, description, vendor, category..." value={query} onChange={e => setQuery(e.target.value)} />
-                  </td>
-                  <td style={{ width: 100 }}>
-                    <button className="retro-btn" type="submit" style={{ width: "100%" }}>SEARCH</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      <div className="bm-page">
+        <h1>Suche</h1>
+        <div className="bm-card" style={{ padding: 14, marginBottom: 14 }}>
+          <form onSubmit={handleSearch} style={{ display: "flex", gap: 8 }}>
+            <input className="bm-form-input" placeholder="Suche nach Titel, Beschreibung, Verkäufer..." value={query} onChange={e => setQuery(e.target.value)} />
+            <button className="bm-btn-primary" type="submit" style={{ width: "auto", padding: "8px 20px" }}>Suchen</button>
           </form>
         </div>
         {searched && (
           <>
-            <p className="text-dim" style={{ fontSize: 10, marginBottom: 8 }}>{results.length} result(s) for "{query}"</p>
-            <table className="retro-table">
-              <thead>
-                <tr><th>LISTING</th><th style={{ width: 100 }}>VENDOR</th><th style={{ width: 80 }}>PRICE</th><th style={{ width: 90 }}>CATEGORY</th></tr>
-              </thead>
+            <p className="bm-dim" style={{ fontSize: 11, marginBottom: 8 }}>{results.length} Ergebnis(se) für "{query}"</p>
+            <table className="bm-table">
+              <thead><tr><th>Listing</th><th style={{ width: 100 }}>Verkäufer</th><th style={{ width: 80 }}>Preis</th><th style={{ width: 90 }}>Kategorie</th></tr></thead>
               <tbody>
-                {results.length === 0 && <tr><td colSpan={4} style={{ textAlign: "center", padding: 16 }}>No results found.</td></tr>}
+                {results.length === 0 && <tr><td colSpan={4} style={{ textAlign: "center", padding: 16 }}>Keine Ergebnisse.</td></tr>}
                 {results.map(p => (
                   <tr key={p.id}>
-                    <td><Link to={`/product/${p.id}`} className="retro-link">{p.title}</Link></td>
-                    <td><Link to={`/profile/${p.seller}`} className="retro-link">{p.seller}</Link></td>
-                    <td className="text-ltc">{p.price} LTC</td>
-                    <td><span className="retro-badge">{p.category}</span></td>
+                    <td><Link to={`/product/${p.id}`} className="bm-link">{p.title}</Link></td>
+                    <td><Link to={`/profile/${p.seller}`} className="bm-link">{p.seller}</Link></td>
+                    <td className="bm-ltc">{p.price} LTC</td>
+                    <td><span className="bm-badge">{p.category}</span></td>
                   </tr>
                 ))}
               </tbody>
