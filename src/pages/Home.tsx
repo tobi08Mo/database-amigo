@@ -82,7 +82,7 @@ export default function Home() {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                   <Link to={`/product/${p.id}`} className="bm-link" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>{p.title}</Link>
-                  <span className="bm-ltc" style={{ fontWeight: "bold", fontSize: 14, whiteSpace: "nowrap", marginLeft: 8 }}>{p.price} LTC</span>
+                  <span className="bm-ltc" style={{ fontWeight: "bold", fontSize: 14, whiteSpace: "nowrap", marginLeft: 8 }}>{p.price_ltc} LTC</span>
                 </div>
                 <p className="bm-dim" style={{ fontSize: 11, lineHeight: 1.5, marginBottom: 8 }}>{p.description.substring(0, 90)}...</p>
               </div>
