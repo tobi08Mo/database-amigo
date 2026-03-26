@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { getCurrentUser, logout, getMessages } from "@/lib/store";
+import { getCurrentUser, logout, getMessages, isCurrentUserAdmin } from "@/lib/store";
 import { useNavigate } from "react-router-dom";
 
 export default function RetroHeader() {
   const user = getCurrentUser();
   const navigate = useNavigate();
   const unread = user ? getMessages().filter(m => m.to === user.username && !m.read).length : 0;
+  const isAdmin = isCurrentUserAdmin();
 
   const handleLogout = () => {
     logout();
@@ -28,6 +29,9 @@ export default function RetroHeader() {
         <Link to="/messages">
           Inbox{unread > 0 && <span style={{ color: "hsl(40 80% 60%)" }}> ({unread})</span>}
         </Link>
+        {isAdmin && (
+          <Link to="/admin" style={{ color: "hsl(0 70% 65%)" }}>Admin</Link>
+        )}
         <span style={{ color: "hsl(0 0% 25%)", margin: "0 4px" }}>|</span>
         <Link to={`/profile/${user?.username}`} style={{ color: "hsl(0 0% 80%)" }}>{user?.username}</Link>
         <span className="bm-ltc" style={{ fontSize: 11 }}>{user?.ltcBalance.toFixed(4)} LTC</span>
