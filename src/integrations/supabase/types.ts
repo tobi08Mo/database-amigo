@@ -14,6 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
+      listing_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          listing_id: string
+          position: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          listing_id: string
+          position?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          listing_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_images_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string
+          id: string
+          price_eur: number
+          price_ltc: number
+          seller: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          price_eur: number
+          price_ltc: number
+          seller: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          price_eur?: number
+          price_ltc?: number
+          seller?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      order_deliveries: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_url: string | null
+          id: string
+          message: string | null
+          order_id: string
+          sender: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          message?: string | null
+          order_id: string
+          sender: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          message?: string | null
+          order_id?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer: string
+          created_at: string
+          id: string
+          listing_id: string
+          price_eur: number
+          price_ltc: number
+          product_title: string
+          seller: string
+          status: string
+        }
+        Insert: {
+          buyer: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          price_eur: number
+          price_ltc: number
+          product_title: string
+          seller: string
+          status?: string
+        }
+        Update: {
+          buyer?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          price_eur?: number
+          price_ltc?: number
+          product_title?: string
+          seller?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount_eur: number | null

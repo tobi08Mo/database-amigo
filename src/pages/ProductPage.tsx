@@ -1,25 +1,97 @@
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getProductById, getCurrentUser, createOrder } from "@/lib/store";
+import { getCurrentUser } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { useLtcEurRate } from "@/hooks/useLtcEurRate";
+
+interface ListingDetail {
+  id: string;
+  seller: string;
+  title: string;
+  description: string;
+  price_eur: number;
+  price_ltc: number;
+  category: string;
+  active: boolean;
+  created_at: string;
+  listing_images: { image_url: string; position: number }[];
+}
 
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = getProductById(id || "");
   const user = getCurrentUser();
+  const { rate } = useLtcEurRate();
+  const [product, setProduct] = useState<ListingDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [imgIdx, setImgIdx] = useState(0);
 
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data } = await supabase
+        .from("listings")
+        .select("*, listing_images(image_url, position)")
+        .eq("id", id)
+        .single();
+      setProduct(data as ListingDetail | null);
+      setLoading(false);
+    })();
+  }, [id]);
+
+  if (loading) return (
+    <div className="bm-bg" style={{ minHeight: "100vh" }}><RetroHeader /><div className="bm-page"><p className="bm-dim">Lädt...</p></div><RetroFooter /></div>
+  );
   if (!product) return (
     <div className="bm-bg" style={{ minHeight: "100vh" }}><RetroHeader /><div className="bm-page"><h1>Produkt nicht gefunden</h1></div><RetroFooter /></div>
   );
 
-  const handleBuy = () => {
+  const images = (product.listing_images || []).sort((a, b) => a.position - b.position);
+
+  const handleBuy = async () => {
     if (!user) return;
     if (user.username === product.seller) { alert("Du kannst dein eigenes Listing nicht kaufen."); return; }
-    if (user.ltcBalance < product.price) { alert("Nicht genügend LTC. Dein Guthaben: " + user.ltcBalance.toFixed(4) + " LTC"); return; }
-    if (!confirm(`"${product.title}" für ${product.price} LTC kaufen?\n\nBetrag wird im Escrow gehalten.`)) return;
-    const order = createOrder(product.id, user.username);
-    if (order) { alert("✓ Bestellung aufgegeben! Escrow aktiv.\nOrder-ID: " + order.id); navigate("/dashboard"); }
+
+    // Check wallet balance from DB
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("ltc_balance")
+      .eq("username", user.username)
+      .single();
+
+    const balance = wallet?.ltc_balance || 0;
+    if (balance < product.price_ltc) {
+      alert(`Nicht genügend LTC. Dein Guthaben: ${balance.toFixed(4)} LTC\nBenötigt: ${product.price_ltc.toFixed(4)} LTC`);
+      return;
+    }
+
+    if (!confirm(`"${product.title}" für ${product.price_eur.toFixed(2)} € (${product.price_ltc.toFixed(4)} LTC) kaufen?\n\nBetrag wird im Escrow gehalten.`)) return;
+
+    // Deduct from buyer wallet
+    const { error: debitErr } = await supabase.functions.invoke("wallet-db", {
+      body: { action: "debit", username: user.username, amount_ltc: product.price_ltc, type: "purchase" },
+    });
+    if (debitErr) { alert("Fehler bei Abbuchung."); return; }
+
+    // Create order
+    const { data: order, error: orderErr } = await supabase
+      .from("orders")
+      .insert({
+        listing_id: product.id,
+        buyer: user.username,
+        seller: product.seller,
+        product_title: product.title,
+        price_eur: product.price_eur,
+        price_ltc: product.price_ltc,
+      })
+      .select()
+      .single();
+
+    if (orderErr || !order) { alert("Fehler bei Bestellung."); return; }
+    alert("✓ Bestellung aufgegeben! Escrow aktiv.\nOrder-ID: " + order.id);
+    navigate("/dashboard");
   };
 
   return (
@@ -30,17 +102,53 @@ export default function ProductPage() {
           <Link to="/home" className="bm-link">Home</Link> → <Link to="/listings" className="bm-link">Listings</Link> → {product.title}
         </p>
         <div className="bm-card" style={{ padding: 18 }}>
-          <div className="bm-product-layout" style={{ display: "flex", gap: 18 }}>
-            <div className="bm-product-image" style={{ width: 140, flexShrink: 0, textAlign: "center" }}>
-              <div style={{ width: 130, height: 130, background: "hsl(0 0% 15%)", border: "1px solid hsl(0 0% 22%)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(0 0% 35%)", fontSize: 11 }}>[Kein Bild]</div>
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+            {/* Image carousel */}
+            <div style={{ width: 280, flexShrink: 0 }}>
+              {images.length > 0 ? (
+                <div>
+                  <img
+                    src={images[imgIdx]?.image_url}
+                    alt={product.title}
+                    style={{ width: "100%", height: 240, objectFit: "cover", border: "1px solid hsl(0 0% 22%)" }}
+                  />
+                  {images.length > 1 && (
+                    <div style={{ display: "flex", gap: 4, marginTop: 6, overflowX: "auto" }}>
+                      {images.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img.image_url}
+                          alt=""
+                          onClick={() => setImgIdx(i)}
+                          style={{
+                            width: 48, height: 48, objectFit: "cover", cursor: "pointer",
+                            border: i === imgIdx ? "2px solid hsl(48 100% 60%)" : "1px solid hsl(0 0% 22%)",
+                            opacity: i === imgIdx ? 1 : 0.6,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ width: "100%", height: 240, background: "hsl(0 0% 15%)", border: "1px solid hsl(0 0% 22%)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(0 0% 35%)", fontSize: 11 }}>
+                  [Kein Bild]
+                </div>
+              )}
               <div style={{ marginTop: 8 }}><span className="bm-badge">{product.category}</span></div>
             </div>
-            <div style={{ flex: 1 }}>
+
+            {/* Details */}
+            <div style={{ flex: 1, minWidth: 200 }}>
               <h1 style={{ fontSize: 17 }}>{product.title}</h1>
               <div style={{ fontSize: 12, marginBottom: 12 }}>
                 <div><span className="bm-dim">Verkäufer:</span> <Link to={`/profile/${product.seller}`} className="bm-link">{product.seller}</Link></div>
-                <div><span className="bm-dim">Preis:</span> <span className="bm-ltc" style={{ fontWeight: "bold", fontSize: 16 }}>{product.price} LTC</span></div>
-                <div><span className="bm-dim">Versand:</span> {product.shipping}</div>
+                <div>
+                  <span className="bm-dim">Preis:</span>{" "}
+                  <span style={{ fontWeight: "bold", fontSize: 18, color: "hsl(48 100% 60%)" }}>{product.price_eur.toFixed(2)} €</span>
+                  <span className="bm-ltc" style={{ marginLeft: 8, fontSize: 12 }}>({product.price_ltc.toFixed(4)} LTC)</span>
+                </div>
+                <div><span className="bm-dim">Typ:</span> Digitales Produkt</div>
               </div>
               <hr className="bm-separator" />
               <h3>Beschreibung</h3>

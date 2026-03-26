@@ -1,40 +1,110 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getCurrentUser, getOrders, getProducts, updateOrderStatus, updateUser, deleteProduct, createReview, getReviews } from "@/lib/store";
+import { getCurrentUser } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { useLtcEurRate } from "@/hooks/useLtcEurRate";
+import OrderDelivery from "@/components/OrderDelivery";
+
+interface DBOrder {
+  id: string;
+  listing_id: string;
+  buyer: string;
+  seller: string;
+  product_title: string;
+  price_eur: number;
+  price_ltc: number;
+  status: string;
+  created_at: string;
+}
+
+interface DBListing {
+  id: string;
+  title: string;
+  price_eur: number;
+  price_ltc: number;
+  category: string;
+  active: boolean;
+}
 
 export default function Dashboard() {
   const user = getCurrentUser();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'overview'|'orders'|'listings'|'wallet'>('overview');
+  const { rate } = useLtcEurRate();
+  const [tab, setTab] = useState<'overview' | 'orders' | 'listings'>('overview');
+  const [orders, setOrders] = useState<DBOrder[]>([]);
+  const [listings, setListings] = useState<DBListing[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const username = user?.username;
+
+  useEffect(() => {
+    if (!username) return;
+    loadData();
+  }, [username]);
 
   if (!user) { navigate("/"); return null; }
 
-  const allOrders = getOrders();
-  const buyOrders = allOrders.filter(o => o.buyer === user.username);
-  const sellOrders = allOrders.filter(o => o.seller === user.username);
-  const myProducts = getProducts().filter(p => p.seller === user.username);
+  const loadData = async () => {
+    if (!username) return;
+    // Load orders
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("*")
+      .or(`buyer.eq.${username},seller.eq.${username}`)
+      .order("created_at", { ascending: false });
+    setOrders((orderData as DBOrder[]) || []);
 
-  const handleDeposit = () => {
-    const amt = prompt("LTC Betrag zum Einzahlen (Demo):");
-    if (amt && !isNaN(parseFloat(amt)) && parseFloat(amt) > 0) {
-      updateUser(user.username, { ltcBalance: user.ltcBalance + parseFloat(amt) });
-      alert("✓ " + amt + " LTC eingezahlt (Demo)");
-      window.location.reload();
-    }
+    // Load listings
+    const { data: listingData } = await supabase
+      .from("listings")
+      .select("id, title, price_eur, price_ltc, category, active")
+      .eq("seller", username);
+    setListings((listingData as DBListing[]) || []);
+
+    // Load wallet balance
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("ltc_balance")
+      .eq("username", username)
+      .single();
+    setWalletBalance(wallet?.ltc_balance || 0);
   };
-  const handleConfirm = (orderId: string) => {
+
+
+
+  const buyOrders = orders.filter(o => o.buyer === user.username);
+  const sellOrders = orders.filter(o => o.seller === user.username);
+
+  const handleConfirm = async (orderId: string) => {
     if (!confirm("Empfang bestätigen? Guthaben wird an Verkäufer freigegeben.")) return;
-    updateOrderStatus(orderId, 'completed');
-    const r = parseInt(prompt("Bewertung (1-5):") || "5");
-    const text = prompt("Feedback:") || "Gute Transaktion.";
-    const order = allOrders.find(o => o.id === orderId);
-    if (order) createReview(orderId, user.username, order.seller, Math.min(5, Math.max(1, r || 5)), text);
-    alert("✓ Abgeschlossen!"); window.location.reload();
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Update order status
+    await supabase.from("orders").update({ status: "completed" }).eq("id", orderId);
+
+    // Credit seller
+    await supabase.functions.invoke("wallet-db", {
+      body: { action: "credit", username: order.seller, amount_ltc: order.price_ltc, txn_id: `order_${orderId}` },
+    });
+
+    alert("✓ Abgeschlossen! Guthaben an Verkäufer freigegeben.");
+    loadData();
   };
-  const handleShip = (id: string) => { updateOrderStatus(id, 'shipped'); alert("✓ Als versendet markiert."); window.location.reload(); };
-  const handleDelete = (id: string) => { if (confirm("Listing löschen?")) { deleteProduct(id); window.location.reload(); } };
+
+  const handleDeliver = async (orderId: string) => {
+    await supabase.from("orders").update({ status: "delivered" }).eq("id", orderId);
+    alert("✓ Als geliefert markiert.");
+    loadData();
+  };
+
+  const handleDeleteListing = async (id: string) => {
+    if (!confirm("Listing löschen?")) return;
+    await supabase.from("listings").update({ active: false }).eq("id", id);
+    loadData();
+  };
 
   const tabClass = (t: string) => t === tab ? "bm-tab bm-tab-active" : "bm-tab bm-tab-inactive";
 
@@ -44,21 +114,21 @@ export default function Dashboard() {
       <div className="bm-page">
         <h1>Dashboard — {user.username}</h1>
         <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1 }}>
-          {(['overview','orders','listings','wallet'] as const).map(t => (
+          {(['overview', 'orders', 'listings'] as const).map(t => (
             <span key={t} className={tabClass(t)} onClick={() => setTab(t)} style={{ cursor: "pointer" }}>
-              {t === 'overview' ? 'Übersicht' : t === 'orders' ? 'Bestellungen' : t === 'listings' ? 'Meine Listings' : 'Wallet'}
+              {t === 'overview' ? 'Übersicht' : t === 'orders' ? 'Bestellungen' : 'Meine Listings'}
             </span>
           ))}
         </div>
         <div className="bm-card" style={{ borderTopLeftRadius: 0, padding: 16 }}>
           {tab === 'overview' && (
             <>
-              <div className="bm-dash-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 14 }}>
+              <div className="bm-dash-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 10, marginBottom: 14 }}>
                 {[
-                  { label: "LTC Guthaben", value: user.ltcBalance.toFixed(4), cls: "bm-ltc" },
-                  { label: "Verkäufe", value: user.totalSales },
-                  { label: "Listings", value: myProducts.filter(p => p.active).length },
-                  { label: "Offene Orders", value: buyOrders.filter(o => o.status !== 'completed').length + sellOrders.filter(o => o.status !== 'completed').length },
+                  { label: "LTC Guthaben", value: walletBalance.toFixed(4), cls: "bm-ltc" },
+                  { label: "≈ EUR", value: `${(walletBalance * rate).toFixed(2)} €` },
+                  { label: "Verkäufe", value: sellOrders.filter(o => o.status === 'completed').length },
+                  { label: "Aktive Listings", value: listings.filter(l => l.active).length },
                 ].map((s, i) => (
                   <div key={i} className="bm-card" style={{ textAlign: "center", padding: 12 }}>
                     <div className="bm-dim" style={{ fontSize: 10 }}>{s.label}</div>
@@ -70,77 +140,104 @@ export default function Dashboard() {
               <table className="bm-table">
                 <thead><tr><th>ID</th><th>Artikel</th><th>Typ</th><th>Betrag</th><th>Status</th></tr></thead>
                 <tbody>
-                  {[...buyOrders,...sellOrders].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,10).map(o=>(
+                  {orders.slice(0, 10).map(o => (
                     <tr key={o.id}>
-                      <td style={{ fontSize: 10, fontFamily: "monospace" }}>{o.id.substring(0,8)}</td>
-                      <td>{o.productTitle}</td>
-                      <td>{o.buyer===user.username?<span className="bm-warn">KAUF</span>:<span style={{color:"hsl(120 60% 55%)"}}>VERKAUF</span>}</td>
-                      <td className="bm-ltc">{o.price} LTC</td>
+                      <td style={{ fontSize: 10, fontFamily: "monospace" }}>{o.id.substring(0, 8)}</td>
+                      <td>{o.product_title}</td>
+                      <td>{o.buyer === user.username ? <span className="bm-warn">KAUF</span> : <span style={{ color: "hsl(120 60% 55%)" }}>VERKAUF</span>}</td>
+                      <td style={{ color: "hsl(48 100% 60%)" }}>{o.price_eur.toFixed(2)} €</td>
                       <td><span className="bm-badge">{o.status.toUpperCase()}</span></td>
                     </tr>
                   ))}
-                  {buyOrders.length+sellOrders.length===0&&<tr><td colSpan={5} style={{textAlign:"center"}}>Keine Transaktionen.</td></tr>}
+                  {orders.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center" }}>Keine Transaktionen.</td></tr>}
                 </tbody>
               </table>
             </>
           )}
+
           {tab === 'orders' && (
             <>
               <h2>Meine Käufe</h2>
-              <table className="bm-table">
-                <thead><tr><th>Artikel</th><th>Verkäufer</th><th>Preis</th><th>Status</th><th>Aktion</th></tr></thead>
-                <tbody>
-                  {buyOrders.length===0&&<tr><td colSpan={5} style={{textAlign:"center"}}>Keine Käufe.</td></tr>}
-                  {buyOrders.map(o=>(
-                    <tr key={o.id}><td>{o.productTitle}</td><td><Link to={`/profile/${o.seller}`} className="bm-link">{o.seller}</Link></td><td className="bm-ltc">{o.price}</td><td><span className="bm-badge">{o.status.toUpperCase()}</span></td>
-                    <td>{(o.status==='escrow'||o.status==='shipped')?<button className="bm-btn-secondary" onClick={()=>handleConfirm(o.id)} style={{fontSize:11}}>Empfangen</button>:<span className="bm-dim">Fertig</span>}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-              <h2 style={{marginTop:16}}>Meine Verkäufe</h2>
-              <table className="bm-table">
-                <thead><tr><th>Artikel</th><th>Käufer</th><th>Preis</th><th>Status</th><th>Aktion</th></tr></thead>
-                <tbody>
-                  {sellOrders.length===0&&<tr><td colSpan={5} style={{textAlign:"center"}}>Keine Verkäufe.</td></tr>}
-                  {sellOrders.map(o=>(
-                    <tr key={o.id}><td>{o.productTitle}</td><td>{o.buyer}</td><td className="bm-ltc">{o.price}</td><td><span className="bm-badge">{o.status.toUpperCase()}</span></td>
-                    <td>{o.status==='escrow'?<button className="bm-btn-secondary" onClick={()=>handleShip(o.id)} style={{fontSize:11}}>Versendet</button>:<span className="bm-dim">{o.status==='shipped'?'Warte auf Käufer':'Fertig'}</span>}</td></tr>
-                  ))}
-                </tbody>
-              </table>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {buyOrders.length === 0 && <p className="bm-dim" style={{ textAlign: "center" }}>Keine Käufe.</p>}
+                {buyOrders.map(o => (
+                  <div key={o.id} className="bm-card" style={{ padding: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{o.product_title}</div>
+                        <div className="bm-dim" style={{ fontSize: 11 }}>
+                          Verkäufer: <Link to={`/profile/${o.seller}`} className="bm-link">{o.seller}</Link> · {o.price_eur.toFixed(2)} € · <span className="bm-badge">{o.status.toUpperCase()}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button className="bm-btn-secondary" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)} style={{ fontSize: 11 }}>
+                          {expandedOrder === o.id ? "Schließen" : "📦 Lieferung"}
+                        </button>
+                        {(o.status === 'escrow' || o.status === 'delivered') && (
+                          <button className="bm-btn-primary" onClick={() => handleConfirm(o.id)} style={{ fontSize: 11 }}>✓ Empfangen</button>
+                        )}
+                      </div>
+                    </div>
+                    {expandedOrder === o.id && (
+                      <OrderDelivery orderId={o.id} currentUser={user.username} seller={o.seller} buyer={o.buyer} />
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <h2 style={{ marginTop: 16 }}>Meine Verkäufe</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {sellOrders.length === 0 && <p className="bm-dim" style={{ textAlign: "center" }}>Keine Verkäufe.</p>}
+                {sellOrders.map(o => (
+                  <div key={o.id} className="bm-card" style={{ padding: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{o.product_title}</div>
+                        <div className="bm-dim" style={{ fontSize: 11 }}>
+                          Käufer: {o.buyer} · {o.price_eur.toFixed(2)} € · <span className="bm-badge">{o.status.toUpperCase()}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button className="bm-btn-secondary" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)} style={{ fontSize: 11 }}>
+                          {expandedOrder === o.id ? "Schließen" : "📦 Lieferung"}
+                        </button>
+                        {o.status === 'escrow' && (
+                          <button className="bm-btn-accent" onClick={() => handleDeliver(o.id)} style={{ fontSize: 11 }}>Als geliefert</button>
+                        )}
+                      </div>
+                    </div>
+                    {expandedOrder === o.id && (
+                      <OrderDelivery orderId={o.id} currentUser={user.username} seller={o.seller} buyer={o.buyer} />
+                    )}
+                  </div>
+                ))}
+              </div>
             </>
           )}
+
           {tab === 'listings' && (
             <>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <h2 style={{margin:0}}>Meine Listings</h2>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h2 style={{ margin: 0 }}>Meine Listings</h2>
                 <Link to="/create-listing"><button className="bm-btn-accent">+ Neues Listing</button></Link>
               </div>
               <table className="bm-table">
-                <thead><tr><th>Titel</th><th>Preis</th><th>Kategorie</th><th>Aktion</th></tr></thead>
+                <thead><tr><th>Titel</th><th>Preis</th><th>Kategorie</th><th>Status</th><th>Aktion</th></tr></thead>
                 <tbody>
-                  {myProducts.length===0&&<tr><td colSpan={4} style={{textAlign:"center"}}>Keine Listings.</td></tr>}
-                  {myProducts.map(p=>(
-                    <tr key={p.id}><td><Link to={`/product/${p.id}`} className="bm-link">{p.title}</Link></td><td className="bm-ltc">{p.price}</td><td><span className="bm-badge">{p.category}</span></td>
-                    <td><button className="bm-btn-danger" onClick={()=>handleDelete(p.id)} style={{fontSize:10}}>Löschen</button></td></tr>
+                  {listings.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center" }}>Keine Listings.</td></tr>}
+                  {listings.map(p => (
+                    <tr key={p.id}>
+                      <td><Link to={`/product/${p.id}`} className="bm-link">{p.title}</Link></td>
+                      <td style={{ color: "hsl(48 100% 60%)" }}>{p.price_eur.toFixed(2)} €</td>
+                      <td><span className="bm-badge">{p.category}</span></td>
+                      <td><span className="bm-badge">{p.active ? "AKTIV" : "INAKTIV"}</span></td>
+                      <td>
+                        {p.active && <button className="bm-btn-danger" onClick={() => handleDeleteListing(p.id)} style={{ fontSize: 10 }}>Löschen</button>}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
-            </>
-          )}
-          {tab === 'wallet' && (
-            <>
-              <h2>Wallet</h2>
-              <div className="bm-card" style={{padding:14}}>
-                <div style={{fontSize:12}}>
-                  <div><span className="bm-dim">Guthaben:</span> <span className="bm-ltc" style={{fontSize:20,fontWeight:"bold"}}>{user.ltcBalance.toFixed(4)} LTC</span></div>
-                  <div><span className="bm-dim">≈ USD:</span> ${(user.ltcBalance*87.42).toFixed(2)}</div>
-                  <div style={{marginTop:6}}><span className="bm-dim">Einzahlungsadresse:</span> <span style={{fontFamily:"monospace",fontSize:11,wordBreak:"break-all"}}>{user.ltcAddress}</span></div>
-                </div>
-                <hr className="bm-separator" />
-                <button className="bm-btn-accent" onClick={handleDeposit}>+ Einzahlen (Demo)</button>
-                <span className="bm-dim" style={{marginLeft:8,fontSize:10}}>Demo-Wallet — kein echtes Krypto.</span>
-              </div>
             </>
           )}
         </div>
