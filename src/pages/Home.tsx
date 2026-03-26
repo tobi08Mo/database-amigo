@@ -64,7 +64,7 @@ export default function Home() {
           {categories.map(c => (
             <Link key={c} to={`/listings?cat=${c}`} style={{ textDecoration: "none" }}>
               <span className="bm-badge" style={{ padding: "5px 12px", fontSize: 12, cursor: "pointer", transition: "all 0.2s" }}>
-                {c} <span className="bm-dim">({products.filter(p => p.category === c && p.active).length})</span>
+                {c} <span className="bm-dim">({listings.filter(l => l.category === c).length})</span>
               </span>
             </Link>
           ))}
