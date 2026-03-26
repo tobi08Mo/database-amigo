@@ -11,7 +11,7 @@ import ProductPage from "./pages/ProductPage";
 import CreateListing from "./pages/CreateListing";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
-import Messages from "./pages/Messages";
+import Wallet from "./pages/Wallet";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
@@ -37,7 +37,7 @@ const App = () => (
           <Route path="/create-listing" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
           <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+          <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
