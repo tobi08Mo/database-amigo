@@ -86,9 +86,10 @@
 }
 
 .bm-topbar-logo img {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
+  filter: invert(1);
 }
 
 .bm-topbar-logo .market-text {
