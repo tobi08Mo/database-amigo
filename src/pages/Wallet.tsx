@@ -83,14 +83,17 @@ export default function Wallet() {
   const [invoice, setInvoice] = useState<InvoiceData | null>(() => {
     try {
       const saved = localStorage.getItem("bm_active_invoice");
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      const expireTime = new Date(parsed.expire_utc).getTime();
+      if (expireTime > 0 && Date.now() >= expireTime) {
+        localStorage.removeItem("bm_active_invoice");
+        return null;
+      }
+      return parsed;
     } catch { return null; }
   });
-  const [invoiceExpired, setInvoiceExpired] = useState(() => {
-    if (!invoice) return false;
-    const expireTime = new Date(invoice.expire_utc).getTime();
-    return expireTime > 0 && Date.now() >= expireTime;
-  });
+  const [invoiceExpired, setInvoiceExpired] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
   const statusInterval = useRef<ReturnType<typeof setInterval> | null>(null);
