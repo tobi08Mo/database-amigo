@@ -99,6 +99,24 @@
 }
 
 /* Nav links in topbar */
+/* Hamburger button — hidden on desktop */
+.bm-hamburger {
+  display: none;
+  background: none;
+  border: 1px solid hsl(0 0% 25%);
+  border-radius: 4px;
+  color: hsl(0 0% 70%);
+  font-size: 18px;
+  padding: 4px 8px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.bm-nav-divider {
+  color: hsl(0 0% 25%);
+  margin: 0 2px;
+}
+
 .bm-topbar-nav {
   display: flex;
   align-items: center;
@@ -116,11 +134,55 @@
   background: none;
   cursor: pointer;
   transition: color 0.2s;
+  white-space: nowrap;
 }
 
 .bm-topbar-nav a:hover,
 .bm-topbar-nav button:hover {
   color: hsl(0 0% 90%);
+}
+
+/* Mobile: show hamburger, hide nav by default */
+@media (max-width: 680px) {
+  .bm-hamburger {
+    display: block;
+  }
+  .bm-topbar-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: hsl(0 0% 10% / 0.98);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid hsl(0 0% 20%);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 0;
+    gap: 0;
+    z-index: 100;
+  }
+  .bm-topbar-nav--open {
+    display: flex;
+  }
+  .bm-topbar-nav a,
+  .bm-topbar-nav button {
+    padding: 10px 16px;
+    font-size: 13px;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .bm-topbar-nav a:hover,
+  .bm-topbar-nav button:hover {
+    background: hsl(0 0% 15%);
+  }
+  .bm-nav-divider {
+    display: none;
+  }
+  .bm-topbar {
+    position: relative;
+  }
 }
 
 /* Auth page centered layout */
