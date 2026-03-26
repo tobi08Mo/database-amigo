@@ -52,10 +52,11 @@
 
 /* Background texture */
 .bm-bg {
+  background-color: hsl(0 0% 10%);
   background-image: url('/images/bg-texture.png');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
