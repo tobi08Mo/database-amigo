@@ -1,16 +1,44 @@
 import { Link } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getProducts, getCategoriesWithAll, getCategories, seedIfEmpty, getUsers, getOrders } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useLtcEurRate } from "@/hooks/useLtcEurRate";
+
+interface Listing {
+  id: string; seller: string; title: string; description: string;
+  price_eur: number; price_ltc: number; category: string; active: boolean;
+  listing_images: { image_url: string; position: number }[];
+}
 
 export default function Home() {
-  const [products, setProducts] = useState(getProducts());
-  useEffect(() => { seedIfEmpty(); setProducts(getProducts()); }, []);
-  const featured = products.filter(p => p.active).slice(0, 8);
-  const categories = getCategories();
-  const users = getUsers();
-  const orders = getOrders();
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [stats, setStats] = useState({ users: 0, listings: 0, orders: 0 });
+  const { rate } = useLtcEurRate();
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("listings")
+        .select("*, listing_images(image_url, position)")
+        .eq("active", true)
+        .order("created_at", { ascending: false })
+        .limit(8);
+      setListings((data as any) || []);
+
+      const { count: orderCount } = await supabase
+        .from("orders").select("*", { count: "exact", head: true }).eq("status", "completed");
+      const { count: listingCount } = await supabase
+        .from("listings").select("*", { count: "exact", head: true }).eq("active", true);
+      const { count: walletCount } = await supabase
+        .from("wallets").select("*", { count: "exact", head: true });
+      setStats({ users: walletCount || 0, listings: listingCount || 0, orders: orderCount || 0 });
+    };
+    load();
+  }, []);
+
+  const categories = [...new Set(listings.map(l => l.category))];
+  const featured = listings;
 
   return (
     <div className="bm-bg" style={{ minHeight: "100vh" }}>
