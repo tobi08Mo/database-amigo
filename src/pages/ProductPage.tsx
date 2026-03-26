@@ -31,7 +31,7 @@ export default function ProductPage() {
         </p>
         <div className="bm-card" style={{ padding: 18 }}>
           <div className="bm-product-layout" style={{ display: "flex", gap: 18 }}>
-            <div style={{ width: 140, flexShrink: 0, textAlign: "center" }}>
+            <div className="bm-product-image" style={{ width: 140, flexShrink: 0, textAlign: "center" }}>
               <div style={{ width: 130, height: 130, background: "hsl(0 0% 15%)", border: "1px solid hsl(0 0% 22%)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(0 0% 35%)", fontSize: 11 }}>[Kein Bild]</div>
               <div style={{ marginTop: 8 }}><span className="bm-badge">{product.category}</span></div>
             </div>
