@@ -417,7 +417,7 @@ export default function Wallet() {
               <p className="bm-dim" style={{ fontSize: 12, marginBottom: 14 }}>
                 Die Zahlungsfrist ist abgelaufen. Bitte erstelle eine neue Einzahlung.
               </p>
-              <button className="bm-btn-primary" onClick={() => { setInvoice(null); setInvoiceExpired(false); }} style={{ width: "auto", padding: "8px 24px" }}>
+              <button className="bm-btn-primary" onClick={clearInvoice} style={{ width: "auto", padding: "8px 24px" }}>
                 Neue Einzahlung →
               </button>
             </div>
