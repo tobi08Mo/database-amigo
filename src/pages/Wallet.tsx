@@ -26,18 +26,32 @@ interface Transaction {
   created_at: string;
 }
 
+function getExpireTimestampMs(expireUtc: string) {
+  const trimmed = String(expireUtc || "").trim();
+  if (!trimmed) return 0;
+
+  if (/^\d+$/.test(trimmed)) {
+    const numeric = Number(trimmed);
+    if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+    return trimmed.length <= 10 ? numeric * 1000 : numeric;
+  }
+
+  const parsed = new Date(trimmed).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 function DepositTimer({ expireUtc, onExpired }: { expireUtc: string; onExpired: () => void }) {
   const getRemaining = () => {
-    const expireTime = new Date(expireUtc).getTime();
-    if (!expireTime || isNaN(expireTime)) return 0;
+    const expireTime = getExpireTimestampMs(expireUtc);
+    if (!expireTime) return 0;
     return Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
   };
 
   const [remaining, setRemaining] = useState(getRemaining);
 
   useEffect(() => {
-    const expireTime = new Date(expireUtc).getTime();
-    if (!expireTime || isNaN(expireTime)) { onExpired(); return; }
+    const expireTime = getExpireTimestampMs(expireUtc);
+    if (!expireTime) { onExpired(); return; }
     if (Date.now() >= expireTime) { onExpired(); return; }
 
     const interval = setInterval(() => {
@@ -85,7 +99,7 @@ export default function Wallet() {
       const saved = localStorage.getItem("bm_active_invoice");
       if (!saved) return null;
       const parsed = JSON.parse(saved);
-      const expireTime = new Date(parsed.expire_utc).getTime();
+       const expireTime = getExpireTimestampMs(parsed.expire_utc);
       if (expireTime > 0 && Date.now() >= expireTime) {
         localStorage.removeItem("bm_active_invoice");
         return null;
