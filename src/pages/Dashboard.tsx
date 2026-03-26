@@ -37,12 +37,14 @@ export default function Dashboard() {
   const [listings, setListings] = useState<DBListing[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-
-  if (!user) { navigate("/"); return null; }
+  const username = user?.username;
 
   useEffect(() => {
+    if (!username) return;
     loadData();
-  }, [user.username]);
+  }, [username]);
+
+  if (!user) { navigate("/"); return null; }
 
   const loadData = async () => {
     // Load orders
