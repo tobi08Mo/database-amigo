@@ -9,6 +9,7 @@ export interface User {
   ltcBalance: number;
   ltcAddress: string;
   bio: string;
+  isAdmin?: boolean;
 }
 
 export interface Product {
@@ -74,13 +75,13 @@ export function getUsers(): User[] {
 function saveUsers(users: User[]) {
   localStorage.setItem('bm_users', JSON.stringify(users));
 }
-export function registerUser(username: string, password: string): User | null {
+export function registerUser(username: string, password: string, isAdmin = false): User | null {
   const users = getUsers();
   if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) return null;
   const user: User = {
     username, password, joinDate: new Date().toISOString().split('T')[0],
     feedbackScore: 0, totalSales: 0, ltcBalance: 0,
-    ltcAddress: generateLtcAddress(), bio: ''
+    ltcAddress: generateLtcAddress(), bio: '', isAdmin
   };
   users.push(user);
   saveUsers(users);
@@ -96,6 +97,10 @@ export function getCurrentUser(): User | null {
   if (!name) return null;
   return getUsers().find(u => u.username === name) || null;
 }
+export function isCurrentUserAdmin(): boolean {
+  const user = getCurrentUser();
+  return user?.isAdmin === true;
+}
 export function logout() { localStorage.removeItem('bm_currentUser'); }
 export function getUserByName(name: string): User | null {
   return getUsers().find(u => u.username === name) || null;
@@ -104,6 +109,47 @@ export function updateUser(username: string, updates: Partial<User>) {
   const users = getUsers();
   const idx = users.findIndex(u => u.username === username);
   if (idx >= 0) { users[idx] = { ...users[idx], ...updates }; saveUsers(users); }
+}
+export function deleteUser(username: string) {
+  saveUsers(getUsers().filter(u => u.username !== username));
+}
+
+// --- Categories (dynamic) ---
+const DEFAULT_CATEGORIES = ['Electronics', 'Digital Goods', 'Books', 'Services', 'Software', 'Other'];
+
+export function getCategories(): string[] {
+  const stored = localStorage.getItem('bm_categories');
+  if (stored) return JSON.parse(stored);
+  return DEFAULT_CATEGORIES;
+}
+function saveCategories(cats: string[]) {
+  localStorage.setItem('bm_categories', JSON.stringify(cats));
+}
+export function addCategory(name: string): boolean {
+  const cats = getCategories();
+  if (cats.find(c => c.toLowerCase() === name.toLowerCase())) return false;
+  cats.push(name);
+  saveCategories(cats);
+  return true;
+}
+export function renameCategory(oldName: string, newName: string): boolean {
+  const cats = getCategories();
+  const idx = cats.findIndex(c => c === oldName);
+  if (idx < 0) return false;
+  if (cats.find(c => c.toLowerCase() === newName.toLowerCase() && c !== oldName)) return false;
+  cats[idx] = newName;
+  saveCategories(cats);
+  // Update all products with old category
+  const products = getProducts();
+  products.forEach(p => { if (p.category === oldName) p.category = newName; });
+  saveProducts(products);
+  return true;
+}
+export function deleteCategory(name: string) {
+  saveCategories(getCategories().filter(c => c !== name));
+}
+export function getCategoriesWithAll(): string[] {
+  return ['All', ...getCategories()];
 }
 
 // --- Products ---
@@ -122,6 +168,11 @@ export function createProduct(p: Omit<Product, 'id' | 'createdAt' | 'active'>): 
 }
 export function getProductById(id: string): Product | null {
   return getProducts().find(p => p.id === id) || null;
+}
+export function updateProduct(id: string, updates: Partial<Product>) {
+  const products = getProducts();
+  const idx = products.findIndex(p => p.id === id);
+  if (idx >= 0) { products[idx] = { ...products[idx], ...updates }; saveProducts(products); }
 }
 export function deleteProduct(id: string) {
   saveProducts(getProducts().filter(p => p.id !== id));
@@ -201,7 +252,6 @@ export function createReview(orderId: string, from: string, to: string, rating: 
   const reviews = getReviews();
   reviews.push(review);
   saveReviews(reviews);
-  // update seller feedback
   const sellerReviews = reviews.filter(r => r.to === to);
   const avg = sellerReviews.reduce((s, r) => s + r.rating, 0) / sellerReviews.length;
   updateUser(to, { feedbackScore: Math.round(avg * 10) / 10 });
@@ -211,6 +261,9 @@ export function createReview(orderId: string, from: string, to: string, rating: 
 // --- Seed Data ---
 export function seedIfEmpty() {
   if (getUsers().length > 0) return;
+  // Admin
+  registerUser('ADMkz', 'ADMkz777', true);
+  // Demo users
   registerUser('darkvendor', 'pass123');
   registerUser('cryptobuyer', 'pass123');
   registerUser('silktrader', 'pass123');
@@ -218,7 +271,6 @@ export function seedIfEmpty() {
   updateUser('cryptobuyer', { ltcBalance: 5.0 });
   updateUser('silktrader', { bio: 'Quality goods. Escrow only.', totalSales: 89, feedbackScore: 4.6, ltcBalance: 8.3 });
 
-  const categories = ['Electronics', 'Digital Goods', 'Books', 'Services', 'Software', 'Other'];
   const sampleProducts = [
     { seller: 'darkvendor', title: 'VPN Lifetime License', description: 'Premium VPN service. No logs. Lifetime access. Supports all platforms.', price: 0.15, category: 'Software', image: '', shipping: 'Digital delivery - instant' },
     { seller: 'darkvendor', title: 'USB Hardware Wallet', description: 'Cold storage wallet for your crypto. Brand new, sealed. Ships worldwide.', price: 0.85, category: 'Electronics', image: '', shipping: 'Worldwide - 5-14 days' },
@@ -229,5 +281,3 @@ export function seedIfEmpty() {
   ];
   sampleProducts.forEach(p => createProduct(p));
 }
-
-export const CATEGORIES = ['All', 'Electronics', 'Digital Goods', 'Books', 'Services', 'Software', 'Other'];
