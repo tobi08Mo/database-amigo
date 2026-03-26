@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getCurrentUser, createProduct, CATEGORIES } from "@/lib/store";
+import { getCurrentUser, createProduct, getCategories } from "@/lib/store";
 
 export default function CreateListing() {
   const user = getCurrentUser();

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getProducts, CATEGORIES } from "@/lib/store";
+import { getProducts, getCategoriesWithAll } from "@/lib/store";
 
 export default function Listings() {
   const [params] = useSearchParams();

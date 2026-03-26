@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getProducts, CATEGORIES, seedIfEmpty } from "@/lib/store";
+import { getProducts, getCategoriesWithAll, seedIfEmpty } from "@/lib/store";
 import { useEffect, useState } from "react";
 
 export default function Home() {
