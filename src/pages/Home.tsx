@@ -52,10 +52,10 @@ export default function Home() {
             Pseudonymer Marketplace — Sicher · Anonym · Escrow
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 14, fontSize: 12 }}>
-            <div><span style={{ fontSize: 18, fontWeight: "bold" }}>{users.length}</span><div className="bm-dim" style={{ fontSize: 10 }}>Benutzer</div></div>
-            <div><span style={{ fontSize: 18, fontWeight: "bold" }}>{products.filter(p=>p.active).length}</span><div className="bm-dim" style={{ fontSize: 10 }}>Listings</div></div>
-            <div><span style={{ fontSize: 18, fontWeight: "bold" }}>{orders.filter(o=>o.status==='completed').length}</span><div className="bm-dim" style={{ fontSize: 10 }}>Transaktionen</div></div>
-            <div><span className="bm-ltc" style={{ fontSize: 18, fontWeight: "bold" }}>$87.42</span><div className="bm-dim" style={{ fontSize: 10 }}>LTC Kurs</div></div>
+            <div><span style={{ fontSize: 18, fontWeight: "bold" }}>{stats.users}</span><div className="bm-dim" style={{ fontSize: 10 }}>Benutzer</div></div>
+            <div><span style={{ fontSize: 18, fontWeight: "bold" }}>{stats.listings}</span><div className="bm-dim" style={{ fontSize: 10 }}>Listings</div></div>
+            <div><span style={{ fontSize: 18, fontWeight: "bold" }}>{stats.orders}</span><div className="bm-dim" style={{ fontSize: 10 }}>Transaktionen</div></div>
+            <div><span className="bm-ltc" style={{ fontSize: 18, fontWeight: "bold" }}>{rate ? `€${rate.toFixed(2)}` : '...'}</span><div className="bm-dim" style={{ fontSize: 10 }}>LTC Kurs</div></div>
           </div>
         </div>
 
