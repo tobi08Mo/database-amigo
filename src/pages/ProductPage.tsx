@@ -46,7 +46,7 @@ export default function ProductPage() {
               <h3>Beschreibung</h3>
               <p style={{ fontSize: 12, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{product.description}</p>
               <hr className="bm-separator" />
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                 {user && user.username !== product.seller && (
                   <button className="bm-btn-primary" onClick={handleBuy} style={{ width: "auto", padding: "8px 20px" }}>Kaufen (Escrow)</button>
                 )}

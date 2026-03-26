@@ -543,3 +543,67 @@ h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
   font-size: 14px;
   padding: 0;
 }
+
+/* ===== GLOBAL MOBILE RESPONSIVE ===== */
+@media (max-width: 680px) {
+  .bm-page {
+    padding: 10px;
+  }
+
+  /* Tables scroll horizontally */
+  .bm-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Tabs wrap */
+  .bm-tab {
+    padding: 6px 10px;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+
+  /* Dashboard grid: 2 cols on mobile */
+  .bm-dash-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Buttons don't overflow */
+  .bm-btn-primary,
+  .bm-btn-secondary,
+  .bm-btn-danger,
+  .bm-btn-accent {
+    font-size: 12px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  /* Auth card full width */
+  .bm-auth-card,
+  .bm-info-box {
+    max-width: 100%;
+  }
+
+  /* Product page stacks vertically */
+  .bm-product-layout {
+    flex-direction: column !important;
+  }
+  .bm-product-image {
+    width: 100% !important;
+  }
+
+  /* Messages button row wraps */
+  .bm-msg-actions {
+    flex-wrap: wrap;
+  }
+
+  h1 { font-size: 16px; }
+  h2 { font-size: 14px; }
+
+  /* Cards smaller padding */
+  .bm-card {
+    padding: 10px;
+  }
+}

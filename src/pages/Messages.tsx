@@ -43,7 +43,7 @@ export default function Messages() {
       <RetroHeader />
       <div className="bm-page">
         <h1>Nachrichten</h1>
-        <div style={{ marginBottom: 12, display: "flex", gap: 6 }}>
+        <div className="bm-msg-actions" style={{ marginBottom: 12, display: "flex", gap: 6 }}>
           <button className="bm-btn-accent" onClick={() => { setComposing(true); setSelected(null); }}>+ Neue Nachricht</button>
           <button className={tab==='inbox'?"bm-btn-secondary":"bm-btn-secondary"} style={{ opacity: tab==='inbox'?1:0.5 }} onClick={() => { setTab('inbox'); setSelected(null); setComposing(false); }}>Posteingang ({inbox.length})</button>
           <button className="bm-btn-secondary" style={{ opacity: tab==='sent'?1:0.5 }} onClick={() => { setTab('sent'); setSelected(null); setComposing(false); }}>Gesendet ({sent.length})</button>
