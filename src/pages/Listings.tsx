@@ -6,49 +6,33 @@ import { getProducts, CATEGORIES } from "@/lib/store";
 
 export default function Listings() {
   const [params] = useSearchParams();
-  const initialCat = params.get("cat") || "All";
-  const [category, setCategory] = useState(initialCat);
+  const [category, setCategory] = useState(params.get("cat") || "All");
   const products = getProducts().filter(p => p.active);
   const filtered = category === "All" ? products : products.filter(p => p.category === category);
 
   return (
-    <div>
+    <div className="bm-bg" style={{ minHeight: "100vh" }}>
       <RetroHeader />
-      <div className="retro-page">
-        <h1>📦 ALL LISTINGS</h1>
-        <div style={{ marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontFamily: "Verdana", marginRight: 8 }}>Filter by category:</span>
-          <select className="retro-select" value={category} onChange={e => setCategory(e.target.value)}>
+      <div className="bm-page">
+        <h1>Alle Listings</h1>
+        <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 12, color: "hsl(0 0% 55%)" }}>Kategorie:</span>
+          <select className="bm-form-input" style={{ width: 160 }} value={category} onChange={e => setCategory(e.target.value)}>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <span className="text-dim" style={{ marginLeft: 12, fontSize: 10 }}>{filtered.length} listing(s)</span>
+          <span className="bm-dim" style={{ fontSize: 11 }}>{filtered.length} Ergebnisse</span>
         </div>
-        <table className="retro-table">
-          <thead>
-            <tr>
-              <th>LISTING TITLE</th>
-              <th style={{ width: 100 }}>VENDOR</th>
-              <th style={{ width: 80 }}>PRICE (LTC)</th>
-              <th style={{ width: 90 }}>CATEGORY</th>
-              <th style={{ width: 80 }}>SHIPPING</th>
-              <th style={{ width: 70 }}>DATE</th>
-            </tr>
-          </thead>
+        <table className="bm-table">
+          <thead><tr><th>Titel</th><th style={{ width: 100 }}>Verkäufer</th><th style={{ width: 80 }}>Preis</th><th style={{ width: 90 }}>Kategorie</th><th style={{ width: 80 }}>Versand</th></tr></thead>
           <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: "center", padding: 20 }}>No listings found.</td></tr>
-            )}
+            {filtered.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center", padding: 20 }}>Keine Listings gefunden.</td></tr>}
             {filtered.map(p => (
               <tr key={p.id}>
-                <td>
-                  <Link to={`/product/${p.id}`} className="retro-link">{p.title}</Link>
-                  <div className="text-dim" style={{ fontSize: 9, marginTop: 2 }}>{p.description.substring(0, 60)}...</div>
-                </td>
-                <td><Link to={`/profile/${p.seller}`} className="retro-link">{p.seller}</Link></td>
-                <td className="text-ltc" style={{ fontWeight: "bold" }}>{p.price}</td>
-                <td><span className="retro-badge">{p.category}</span></td>
-                <td style={{ fontSize: 9 }}>{p.shipping}</td>
-                <td className="text-dim" style={{ fontSize: 9 }}>{p.createdAt}</td>
+                <td><Link to={`/product/${p.id}`} className="bm-link">{p.title}</Link><div className="bm-dim" style={{ fontSize: 10 }}>{p.description.substring(0, 60)}...</div></td>
+                <td><Link to={`/profile/${p.seller}`} className="bm-link">{p.seller}</Link></td>
+                <td className="bm-ltc" style={{ fontWeight: "bold" }}>{p.price}</td>
+                <td><span className="bm-badge">{p.category}</span></td>
+                <td style={{ fontSize: 10 }}>{p.shipping}</td>
               </tr>
             ))}
           </tbody>

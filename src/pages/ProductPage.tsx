@@ -10,70 +10,50 @@ export default function ProductPage() {
   const user = getCurrentUser();
 
   if (!product) return (
-    <div><RetroHeader /><div className="retro-page"><h1>PRODUCT NOT FOUND</h1><p>This listing does not exist or has been removed.</p></div><RetroFooter /></div>
+    <div className="bm-bg" style={{ minHeight: "100vh" }}><RetroHeader /><div className="bm-page"><h1>Produkt nicht gefunden</h1></div><RetroFooter /></div>
   );
 
   const handleBuy = () => {
-    if (!user) { alert("You must be logged in to purchase."); navigate("/login"); return; }
-    if (user.username === product.seller) { alert("You cannot buy your own listing."); return; }
-    if (user.ltcBalance < product.price) { alert("ERROR: Insufficient LTC balance. Please deposit funds first.\nYour balance: " + user.ltcBalance.toFixed(4) + " LTC\nRequired: " + product.price + " LTC"); return; }
-    if (!confirm(`Confirm purchase of "${product.title}" for ${product.price} LTC?\n\nFunds will be held in escrow until you confirm receipt.`)) return;
+    if (!user) return;
+    if (user.username === product.seller) { alert("Du kannst dein eigenes Listing nicht kaufen."); return; }
+    if (user.ltcBalance < product.price) { alert("Nicht genügend LTC. Dein Guthaben: " + user.ltcBalance.toFixed(4) + " LTC"); return; }
+    if (!confirm(`"${product.title}" für ${product.price} LTC kaufen?\n\nBetrag wird im Escrow gehalten.`)) return;
     const order = createOrder(product.id, user.username);
-    if (order) {
-      alert("✓ Order placed! " + product.price + " LTC held in escrow.\nOrder ID: " + order.id + "\n\nCheck your dashboard to manage this order.");
-      navigate("/dashboard");
-    } else {
-      alert("ERROR: Could not complete purchase.");
-    }
+    if (order) { alert("✓ Bestellung aufgegeben! Escrow aktiv.\nOrder-ID: " + order.id); navigate("/dashboard"); }
   };
 
   return (
-    <div>
+    <div className="bm-bg" style={{ minHeight: "100vh" }}>
       <RetroHeader />
-      <div className="retro-page">
-        <p className="text-dim" style={{ fontSize: 10, marginBottom: 8 }}>
-          <Link to="/" className="retro-link">Home</Link> » <Link to="/listings" className="retro-link">Listings</Link> » {product.title}
+      <div className="bm-page">
+        <p className="bm-dim" style={{ fontSize: 11, marginBottom: 10 }}>
+          <Link to="/home" className="bm-link">Home</Link> → <Link to="/listings" className="bm-link">Listings</Link> → {product.title}
         </p>
-        <div className="retro-card" style={{ padding: 16 }}>
-          <table style={{ width: "100%" }}>
-            <tbody>
-              <tr>
-                <td style={{ verticalAlign: "top", width: 150, textAlign: "center", paddingRight: 16 }}>
-                  <div style={{ width: 130, height: 130, background: "hsl(220,15%,15%)", border: "1px solid hsl(120,20%,25%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "hsl(120,20%,35%)" }}>
-                    [NO IMAGE]
-                  </div>
-                  <div style={{ marginTop: 8 }}>
-                    <span className="retro-badge">{product.category}</span>
-                  </div>
-                </td>
-                <td style={{ verticalAlign: "top" }}>
-                  <h1 style={{ fontSize: 16 }}>{product.title}</h1>
-                  <table style={{ fontSize: 11, marginBottom: 10 }}>
-                    <tbody>
-                      <tr><td style={{ paddingRight: 16, color: "hsl(120,20%,45%)" }}>Vendor:</td><td><Link to={`/profile/${product.seller}`} className="retro-link">{product.seller}</Link></td></tr>
-                      <tr><td style={{ color: "hsl(120,20%,45%)" }}>Price:</td><td className="text-ltc" style={{ fontWeight: "bold", fontSize: 14 }}>{product.price} LTC</td></tr>
-                      <tr><td style={{ color: "hsl(120,20%,45%)" }}>Shipping:</td><td>{product.shipping}</td></tr>
-                      <tr><td style={{ color: "hsl(120,20%,45%)" }}>Listed:</td><td>{product.createdAt}</td></tr>
-                    </tbody>
-                  </table>
-                  <hr className="retro-separator" />
-                  <h3>DESCRIPTION</h3>
-                  <p style={{ fontSize: 11, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{product.description}</p>
-                  <hr className="retro-separator" />
-                  <div style={{ marginTop: 8 }}>
-                    {user && user.username !== product.seller && (
-                      <button className="retro-btn retro-btn-accent" onClick={handleBuy} style={{ marginRight: 8 }}>
-                        ★ BUY NOW (ESCROW) ★
-                      </button>
-                    )}
-                    <Link to={`/messages?to=${product.seller}`}>
-                      <button className="retro-btn">MESSAGE VENDOR</button>
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="bm-card" style={{ padding: 18 }}>
+          <div style={{ display: "flex", gap: 18 }}>
+            <div style={{ width: 140, flexShrink: 0, textAlign: "center" }}>
+              <div style={{ width: 130, height: 130, background: "hsl(0 0% 15%)", border: "1px solid hsl(0 0% 22%)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(0 0% 35%)", fontSize: 11 }}>[Kein Bild]</div>
+              <div style={{ marginTop: 8 }}><span className="bm-badge">{product.category}</span></div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <h1 style={{ fontSize: 17 }}>{product.title}</h1>
+              <div style={{ fontSize: 12, marginBottom: 12 }}>
+                <div><span className="bm-dim">Verkäufer:</span> <Link to={`/profile/${product.seller}`} className="bm-link">{product.seller}</Link></div>
+                <div><span className="bm-dim">Preis:</span> <span className="bm-ltc" style={{ fontWeight: "bold", fontSize: 16 }}>{product.price} LTC</span></div>
+                <div><span className="bm-dim">Versand:</span> {product.shipping}</div>
+              </div>
+              <hr className="bm-separator" />
+              <h3>Beschreibung</h3>
+              <p style={{ fontSize: 12, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{product.description}</p>
+              <hr className="bm-separator" />
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                {user && user.username !== product.seller && (
+                  <button className="bm-btn-primary" onClick={handleBuy} style={{ width: "auto", padding: "8px 20px" }}>Kaufen (Escrow)</button>
+                )}
+                <Link to={`/messages?to=${product.seller}`}><button className="bm-btn-secondary">Nachricht senden</button></Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <RetroFooter />
