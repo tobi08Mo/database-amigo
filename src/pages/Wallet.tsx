@@ -58,14 +58,43 @@ export default function Wallet() {
   const [withdrawAddress, setWithdrawAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"overview" | "deposit" | "withdraw">("overview");
-  const [invoice, setInvoice] = useState<InvoiceData | null>(null);
-  const [invoiceExpired, setInvoiceExpired] = useState(false);
+  const [invoice, setInvoice] = useState<InvoiceData | null>(() => {
+    try {
+      const saved = localStorage.getItem("bm_active_invoice");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  const [invoiceExpired, setInvoiceExpired] = useState(() => {
+    if (!invoice) return false;
+    const expireTime = new Date(invoice.expire_utc).getTime();
+    return expireTime > 0 && Date.now() >= expireTime;
+  });
   const [copied, setCopied] = useState<string | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
   const statusInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Persist invoice to localStorage
+  useEffect(() => {
+    if (invoice && !invoiceExpired) {
+      localStorage.setItem("bm_active_invoice", JSON.stringify(invoice));
+    } else {
+      localStorage.removeItem("bm_active_invoice");
+    }
+  }, [invoice, invoiceExpired]);
+
   const handleExpired = useCallback(() => {
     setInvoiceExpired(true);
+    localStorage.removeItem("bm_active_invoice");
+    if (statusInterval.current) {
+      clearInterval(statusInterval.current);
+      statusInterval.current = null;
+    }
+  }, []);
+
+  const clearInvoice = useCallback(() => {
+    setInvoice(null);
+    setInvoiceExpired(false);
+    localStorage.removeItem("bm_active_invoice");
     if (statusInterval.current) {
       clearInterval(statusInterval.current);
       statusInterval.current = null;
@@ -95,11 +124,16 @@ export default function Wallet() {
     }, 15000);
   }, [user]);
 
+  // Resume polling if invoice exists on mount
   useEffect(() => {
+    if (invoice && !invoiceExpired) {
+      setTab("deposit");
+      startStatusPolling(invoice.txn_id);
+    }
     return () => {
       if (statusInterval.current) clearInterval(statusInterval.current);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user) { navigate("/"); return null; }
 
@@ -232,9 +266,9 @@ export default function Wallet() {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1 }}>
-          <span className={tabClass("overview")} onClick={() => { setTab("overview"); setInvoice(null); }} style={{ cursor: "pointer" }}>Übersicht</span>
-          <span className={tabClass("deposit")} onClick={() => { setTab("deposit"); setInvoice(null); }} style={{ cursor: "pointer" }}>Einzahlen</span>
-          <span className={tabClass("withdraw")} onClick={() => { setTab("withdraw"); setInvoice(null); }} style={{ cursor: "pointer" }}>Auszahlen</span>
+          <span className={tabClass("overview")} onClick={() => { setTab("overview"); }} style={{ cursor: "pointer" }}>Übersicht</span>
+          <span className={tabClass("deposit")} onClick={() => { setTab("deposit"); }} style={{ cursor: "pointer" }}>Einzahlen</span>
+          <span className={tabClass("withdraw")} onClick={() => { setTab("withdraw"); }} style={{ cursor: "pointer" }}>Auszahlen</span>
         </div>
 
         <div className="bm-card" style={{ padding: 16 }}>
@@ -361,7 +395,7 @@ export default function Wallet() {
                 </button>
                 <button
                   className="bm-btn-secondary"
-                  onClick={() => { setInvoice(null); if (statusInterval.current) { clearInterval(statusInterval.current); statusInterval.current = null; } }}
+                  onClick={clearInvoice}
                   style={{ fontSize: 11 }}
                 >
                   Abbrechen
@@ -383,7 +417,7 @@ export default function Wallet() {
               <p className="bm-dim" style={{ fontSize: 12, marginBottom: 14 }}>
                 Die Zahlungsfrist ist abgelaufen. Bitte erstelle eine neue Einzahlung.
               </p>
-              <button className="bm-btn-primary" onClick={() => { setInvoice(null); setInvoiceExpired(false); }} style={{ width: "auto", padding: "8px 24px" }}>
+              <button className="bm-btn-primary" onClick={clearInvoice} style={{ width: "auto", padding: "8px 24px" }}>
                 Neue Einzahlung →
               </button>
             </div>
