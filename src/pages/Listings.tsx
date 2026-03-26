@@ -18,7 +18,7 @@ export default function Listings() {
         <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 12, color: "hsl(0 0% 55%)" }}>Kategorie:</span>
           <select className="bm-form-input" style={{ width: 160 }} value={category} onChange={e => setCategory(e.target.value)}>
-            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            {getCategoriesWithAll().map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <span className="bm-dim" style={{ fontSize: 11 }}>{filtered.length} Ergebnisse</span>
         </div>

@@ -18,7 +18,7 @@ export default function Home() {
             <div className="bm-sidebar-card">
               <h3>Kategorien</h3>
               <hr className="bm-separator" />
-              {CATEGORIES.filter(c => c !== 'All').map(c => (
+              {getCategoriesWithAll().filter(c => c !== 'All').map(c => (
                 <div key={c} style={{ marginBottom: 4 }}>
                   <Link to={`/listings?cat=${c}`} className="bm-link" style={{ fontSize: 12 }}>» {c}</Link>
                 </div>
