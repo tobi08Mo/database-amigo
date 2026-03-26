@@ -41,7 +41,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-family: 'Tahoma', 'Verdana', 'Segoe UI', Arial, sans-serif;
     font-size: 14px;
     margin: 0;
     padding: 0;
