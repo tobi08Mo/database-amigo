@@ -266,9 +266,9 @@ export default function Wallet() {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1 }}>
-          <span className={tabClass("overview")} onClick={() => { setTab("overview"); setInvoice(null); }} style={{ cursor: "pointer" }}>Übersicht</span>
-          <span className={tabClass("deposit")} onClick={() => { setTab("deposit"); setInvoice(null); }} style={{ cursor: "pointer" }}>Einzahlen</span>
-          <span className={tabClass("withdraw")} onClick={() => { setTab("withdraw"); setInvoice(null); }} style={{ cursor: "pointer" }}>Auszahlen</span>
+          <span className={tabClass("overview")} onClick={() => { setTab("overview"); }} style={{ cursor: "pointer" }}>Übersicht</span>
+          <span className={tabClass("deposit")} onClick={() => { setTab("deposit"); }} style={{ cursor: "pointer" }}>Einzahlen</span>
+          <span className={tabClass("withdraw")} onClick={() => { setTab("withdraw"); }} style={{ cursor: "pointer" }}>Auszahlen</span>
         </div>
 
         <div className="bm-card" style={{ padding: 16 }}>
