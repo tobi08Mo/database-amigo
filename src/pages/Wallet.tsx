@@ -73,8 +73,28 @@ export default function Wallet() {
   const [checkingStatus, setCheckingStatus] = useState(false);
   const statusInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Persist invoice to localStorage
+  useEffect(() => {
+    if (invoice && !invoiceExpired) {
+      localStorage.setItem("bm_active_invoice", JSON.stringify(invoice));
+    } else {
+      localStorage.removeItem("bm_active_invoice");
+    }
+  }, [invoice, invoiceExpired]);
+
   const handleExpired = useCallback(() => {
     setInvoiceExpired(true);
+    localStorage.removeItem("bm_active_invoice");
+    if (statusInterval.current) {
+      clearInterval(statusInterval.current);
+      statusInterval.current = null;
+    }
+  }, []);
+
+  const clearInvoice = useCallback(() => {
+    setInvoice(null);
+    setInvoiceExpired(false);
+    localStorage.removeItem("bm_active_invoice");
     if (statusInterval.current) {
       clearInterval(statusInterval.current);
       statusInterval.current = null;
