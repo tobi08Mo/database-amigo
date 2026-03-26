@@ -53,7 +53,7 @@ export default function Dashboard() {
         <div className="bm-card" style={{ borderTopLeftRadius: 0, padding: 16 }}>
           {tab === 'overview' && (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 14 }}>
+              <div className="bm-dash-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 14 }}>
                 {[
                   { label: "LTC Guthaben", value: user.ltcBalance.toFixed(4), cls: "bm-ltc" },
                   { label: "Verkäufe", value: user.totalSales },

@@ -30,8 +30,8 @@ export default function ProductPage() {
           <Link to="/home" className="bm-link">Home</Link> → <Link to="/listings" className="bm-link">Listings</Link> → {product.title}
         </p>
         <div className="bm-card" style={{ padding: 18 }}>
-          <div style={{ display: "flex", gap: 18 }}>
-            <div style={{ width: 140, flexShrink: 0, textAlign: "center" }}>
+          <div className="bm-product-layout" style={{ display: "flex", gap: 18 }}>
+            <div className="bm-product-image" style={{ width: 140, flexShrink: 0, textAlign: "center" }}>
               <div style={{ width: 130, height: 130, background: "hsl(0 0% 15%)", border: "1px solid hsl(0 0% 22%)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(0 0% 35%)", fontSize: 11 }}>[Kein Bild]</div>
               <div style={{ marginTop: 8 }}><span className="bm-badge">{product.category}</span></div>
             </div>
@@ -46,7 +46,7 @@ export default function ProductPage() {
               <h3>Beschreibung</h3>
               <p style={{ fontSize: 12, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{product.description}</p>
               <hr className="bm-separator" />
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                 {user && user.username !== product.seller && (
                   <button className="bm-btn-primary" onClick={handleBuy} style={{ width: "auto", padding: "8px 20px" }}>Kaufen (Escrow)</button>
                 )}
