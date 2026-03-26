@@ -64,6 +64,43 @@ export default function Wallet() {
   const [checkingStatus, setCheckingStatus] = useState(false);
   const statusInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const handleExpired = useCallback(() => {
+    setInvoiceExpired(true);
+    if (statusInterval.current) {
+      clearInterval(statusInterval.current);
+      statusInterval.current = null;
+    }
+  }, []);
+
+  const startStatusPolling = useCallback((txnId: string) => {
+    if (statusInterval.current) clearInterval(statusInterval.current);
+    statusInterval.current = setInterval(async () => {
+      try {
+        const { data } = await supabase.functions.invoke("plisio-gateway", {
+          body: { action: "check_status", txn_id: txnId },
+        });
+        if (data?.status === "completed" || data?.status === "mismatch") {
+          clearInterval(statusInterval.current!);
+          statusInterval.current = null;
+          const ltcAmount = parseFloat(data?.amount || "0");
+          if (ltcAmount > 0 && user) {
+            updateUser(user.username, { ltcBalance: user.ltcBalance + ltcAmount });
+          }
+          alert("✓ Zahlung empfangen! Dein Guthaben wurde aktualisiert.");
+          window.location.reload();
+        }
+      } catch {
+        // Silently retry
+      }
+    }, 15000);
+  }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (statusInterval.current) clearInterval(statusInterval.current);
+    };
+  }, []);
+
   if (!user) { navigate("/"); return null; }
 
   const balanceEur = (user.ltcBalance * LTC_EUR_RATE).toFixed(2);
