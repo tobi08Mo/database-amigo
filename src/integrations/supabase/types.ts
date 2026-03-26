@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      transactions: {
+        Row: {
+          amount_eur: number | null
+          amount_ltc: number
+          created_at: string
+          id: string
+          status: string
+          txn_id: string | null
+          type: string
+          username: string
+          wallet_address: string | null
+        }
+        Insert: {
+          amount_eur?: number | null
+          amount_ltc: number
+          created_at?: string
+          id?: string
+          status?: string
+          txn_id?: string | null
+          type: string
+          username: string
+          wallet_address?: string | null
+        }
+        Update: {
+          amount_eur?: number | null
+          amount_ltc?: number
+          created_at?: string
+          id?: string
+          status?: string
+          txn_id?: string | null
+          type?: string
+          username?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          created_at: string
+          id: string
+          ltc_balance: number
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ltc_balance?: number
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ltc_balance?: number
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
