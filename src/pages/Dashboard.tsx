@@ -71,27 +71,8 @@ export default function Dashboard() {
       .single();
     setWalletBalance(wallet?.ltc_balance || 0);
   };
-      .from("orders")
-      .select("*")
-      .or(`buyer.eq.${user.username},seller.eq.${user.username}`)
-      .order("created_at", { ascending: false });
-    setOrders((orderData as DBOrder[]) || []);
 
-    // Load listings
-    const { data: listingData } = await supabase
-      .from("listings")
-      .select("id, title, price_eur, price_ltc, category, active")
-      .eq("seller", user.username);
-    setListings((listingData as DBListing[]) || []);
 
-    // Load wallet balance
-    const { data: wallet } = await supabase
-      .from("wallets")
-      .select("ltc_balance")
-      .eq("username", user.username)
-      .single();
-    setWalletBalance(wallet?.ltc_balance || 0);
-  };
 
   const buyOrders = orders.filter(o => o.buyer === user.username);
   const sellOrders = orders.filter(o => o.seller === user.username);
