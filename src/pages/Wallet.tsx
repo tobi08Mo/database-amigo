@@ -27,10 +27,19 @@ interface Transaction {
 }
 
 function DepositTimer({ expireUtc, onExpired }: { expireUtc: string; onExpired: () => void }) {
-  const [remaining, setRemaining] = useState(35 * 60);
+  const getRemaining = () => {
+    const expireTime = new Date(expireUtc).getTime();
+    if (!expireTime || isNaN(expireTime)) return 0;
+    return Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
+  };
+
+  const [remaining, setRemaining] = useState(getRemaining);
 
   useEffect(() => {
-    const expireTime = new Date(expireUtc).getTime() || (Date.now() + 35 * 60 * 1000);
+    const expireTime = new Date(expireUtc).getTime();
+    if (!expireTime || isNaN(expireTime)) { onExpired(); return; }
+    if (Date.now() >= expireTime) { onExpired(); return; }
+
     const interval = setInterval(() => {
       const diff = Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
       setRemaining(diff);
