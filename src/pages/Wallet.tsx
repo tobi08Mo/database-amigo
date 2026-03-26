@@ -395,7 +395,7 @@ export default function Wallet() {
                 </button>
                 <button
                   className="bm-btn-secondary"
-                  onClick={() => { setInvoice(null); if (statusInterval.current) { clearInterval(statusInterval.current); statusInterval.current = null; } }}
+                  onClick={clearInvoice}
                   style={{ fontSize: 11 }}
                 >
                   Abbrechen
