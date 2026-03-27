@@ -4,6 +4,7 @@ import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameC
 import { supabase } from "@/integrations/supabase/client";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
+import DisputeChat from "@/components/DisputeChat";
 
 interface DbListing {
   id: string;
