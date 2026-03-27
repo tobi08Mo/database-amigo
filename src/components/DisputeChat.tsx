@@ -101,7 +101,7 @@ export default function DisputeChat({ disputeId, currentUser, buyer, seller, sta
       // Update order status
       const { data: dispute } = await supabase.from("disputes" as any).select("order_id").eq("id", disputeId).single();
       if (dispute) {
-        await supabase.from("orders").update({ status: resolution === "buyer" ? "refunded" : "completed" }).eq("id", dispute.order_id);
+        await supabase.from("orders").update({ status: resolution === "buyer" ? "refunded" : "completed" }).eq("id", (dispute as any).order_id);
       }
 
       // System message
