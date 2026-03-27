@@ -39,7 +39,7 @@ export default function Login() {
 
       <div className="bm-auth-page">
         <img src="/images/logo.png" alt="Basta Market" className="bm-auth-logo" />
-        <div className="bm-auth-title">
+        <div className="bm-auth-title" style={{ fontSize: "3rem", letterSpacing: "0.15em" }}>
           BASTA <span className="market-text">MARKET</span>
         </div>
 
