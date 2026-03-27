@@ -22,7 +22,7 @@ interface ListingDetail {
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const { rate } = useLtcEurRate();
   const [product, setProduct] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);

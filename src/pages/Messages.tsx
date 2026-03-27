@@ -16,7 +16,7 @@ interface Msg {
 }
 
 export default function Messages() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const prefillTo = params.get("to") || "";

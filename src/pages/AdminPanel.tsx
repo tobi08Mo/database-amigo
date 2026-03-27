@@ -48,8 +48,8 @@ interface DbDispute {
   resolved_at: string | null;
 }
 
-export default function AdminPanel() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin ?? false;
   const navigate = useNavigate();
   const [tab, setTab] = useState<'products' | 'categories' | 'users' | 'overview' | 'disputes'>('overview');
   const [newCat, setNewCat] = useState("");

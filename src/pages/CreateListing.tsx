@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLtcEurRate } from "@/hooks/useLtcEurRate";
 
 export default function CreateListing() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { rate } = useLtcEurRate();
   const [title, setTitle] = useState("");

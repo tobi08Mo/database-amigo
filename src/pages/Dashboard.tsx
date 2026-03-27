@@ -30,7 +30,7 @@ interface DBListing {
 }
 
 export default function Dashboard() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { rate } = useLtcEurRate();
   const [tab, setTab] = useState<'overview' | 'orders' | 'listings'>('overview');

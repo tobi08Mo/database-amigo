@@ -83,7 +83,7 @@ function DepositTimer({ expireUtc, onExpired }: { expireUtc: string; onExpired: 
 }
 
 export default function Wallet() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { rate: LTC_EUR_RATE } = useLtcEurRate();
   const [ltcBalance, setLtcBalance] = useState(0);
