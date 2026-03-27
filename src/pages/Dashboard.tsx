@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getCurrentUser } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLtcEurRate } from "@/hooks/useLtcEurRate";
 import OrderDelivery from "@/components/OrderDelivery";
@@ -30,7 +30,7 @@ interface DBListing {
 }
 
 export default function Dashboard() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { rate } = useLtcEurRate();
   const [tab, setTab] = useState<'overview' | 'orders' | 'listings'>('overview');

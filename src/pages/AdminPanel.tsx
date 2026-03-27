@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameCategory, deleteCategory } from "@/lib/store";
+import { getCategories, addCategory, renameCategory, deleteCategory } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
@@ -46,9 +47,9 @@ interface DbDispute {
   created_at: string;
   resolved_at: string | null;
 }
-
 export default function AdminPanel() {
-  const user = getCurrentUser();
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin ?? false;
   const navigate = useNavigate();
   const [tab, setTab] = useState<'products' | 'categories' | 'users' | 'overview' | 'disputes'>('overview');
   const [newCat, setNewCat] = useState("");
@@ -68,7 +69,7 @@ export default function AdminPanel() {
   const categories = getCategories();
 
   useEffect(() => {
-    if (!user || !isCurrentUserAdmin()) { navigate("/home"); return; }
+    if (!user || !isAdmin) { navigate("/home"); return; }
     loadData();
   }, []);
 
@@ -87,7 +88,7 @@ export default function AdminPanel() {
     setLoading(false);
   };
 
-  if (!user || !isCurrentUserAdmin()) return null;
+  if (!user || !isAdmin) return null;
 
   const handleAddCategory = () => {
     if (!newCat.trim()) return;
