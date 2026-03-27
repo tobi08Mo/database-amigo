@@ -118,8 +118,8 @@ export default function RetroHeader() {
         </div>
       </div>
 
-      {/* Mobile bottom navigation */}
-      <nav className="bm-bottom-nav">
+      {/* Mobile bottom navigation - row 1 */}
+      <nav className="bm-bottom-nav" style={{ flexWrap: "wrap", height: "auto", paddingBottom: "env(safe-area-inset-bottom, 8px)" }}>
         <Link to="/home" className={`bm-bottom-nav-item ${isActive("/home") ? "active" : ""}`}>
           <IconHome />
           <span>Home</span>
@@ -132,6 +132,10 @@ export default function RetroHeader() {
           <span className="bm-bottom-icon-plus"><IconPlus /></span>
           <span>Verkaufen</span>
         </Link>
+        <Link to="/wallet" className={`bm-bottom-nav-item ${isActive("/wallet") ? "active" : ""}`}>
+          <IconWallet />
+          <span>Wallet</span>
+        </Link>
         <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`} style={{ position: "relative" }}>
           <IconMessages />
           {unreadCount > 0 && (
@@ -143,6 +147,10 @@ export default function RetroHeader() {
           )}
           <span>Inbox</span>
         </Link>
+        <Link to="/dashboard" className={`bm-bottom-nav-item ${isActive("/dashboard") ? "active" : ""}`}>
+          <IconProfile />
+          <span>Dashboard</span>
+        </Link>
         {isAdmin && (
           <Link to="/admin" className={`bm-bottom-nav-item ${isActive("/admin") ? "active" : ""}`}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -152,7 +160,7 @@ export default function RetroHeader() {
             <span style={{ color: "hsl(0 70% 65%)" }}>Admin</span>
           </Link>
         )}
-        <button onClick={handleLogout} className={`bm-bottom-nav-item`} style={{ background: "none", border: "none", cursor: "pointer" }}>
+        <button onClick={handleLogout} className="bm-bottom-nav-item" style={{ background: "none", border: "none", cursor: "pointer" }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
             <polyline points="16 17 21 12 16 7" />
