@@ -50,7 +50,7 @@ export default function Login() {
 
         <div className="bm-info-box">
           <div className="bm-info-box-label">Tritt unserer Community bei:</div>
-          <a href="#" onClick={(e) => e.preventDefault()}>Basta Market Chat →</a>
+          <a href="https://t.me/BastaaMarket" target="_blank" rel="noopener noreferrer">Basta Market Chat →</a>
         </div>
 
         <div className="bm-auth-card">
