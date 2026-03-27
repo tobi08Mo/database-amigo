@@ -73,6 +73,8 @@ export default function Messages() {
     return () => { supabase.removeChannel(channel); };
   }, [username]);
 
+  if (!user) { navigate("/"); return null; }
+
   const inbox = messages.filter(m => m.to_user === username);
   const sent = messages.filter(m => m.from_user === username);
 
