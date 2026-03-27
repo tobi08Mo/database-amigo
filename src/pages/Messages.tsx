@@ -45,8 +45,9 @@ export default function Messages() {
     })();
   }, [username]);
 
-  // Realtime subscription for new messages
+  // Realtime
   useEffect(() => {
+    if (!username) return;
     const channel = supabase
       .channel(`messages-${username}`)
       .on("postgres_changes", {
