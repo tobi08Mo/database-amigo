@@ -138,8 +138,15 @@ export default function RetroHeader() {
           <IconWallet />
           <span>Wallet</span>
         </Link>
-        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`}>
+        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`} style={{ position: "relative" }}>
           <IconMessages />
+          {unreadCount > 0 && (
+            <span style={{
+              position: "absolute", top: 2, right: "50%", marginRight: -18,
+              background: "hsl(0 70% 50%)", borderRadius: "50%",
+              width: 8, height: 8, display: "block",
+            }} />
+          )}
           <span>Inbox</span>
         </Link>
         <Link to="/dashboard" className={`bm-bottom-nav-item ${isActive("/dashboard") ? "active" : ""}`}>
