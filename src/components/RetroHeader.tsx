@@ -52,6 +52,29 @@ export default function RetroHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = isCurrentUserAdmin();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.username) return;
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("to_user", user.username)
+        .eq("read", false);
+      setUnreadCount(count || 0);
+    };
+    fetchUnread();
+
+    const channel = supabase
+      .channel(`header-unread-${user.username}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        fetchUnread();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.username]);
 
   const handleLogout = () => {
     logout();
