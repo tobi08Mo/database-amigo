@@ -1,30 +1,34 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { loginUser, seedIfEmpty } from "@/lib/store";
-import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, user } = useAuth();
 
-  useEffect(() => { seedIfEmpty(); }, []);
+  // Redirect if already logged in
+  if (user) { navigate("/home", { replace: true }); return null; }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = loginUser(username, password);
-    if (user) {
+    setError("");
+    setLoading(true);
+    const result = await login(username, password);
+    setLoading(false);
+    if (result.success) {
       navigate("/home");
-      window.location.reload();
     } else {
-      alert("Ungültige Zugangsdaten. Bitte versuche es erneut.");
+      setError("Ungültige Zugangsdaten. Bitte versuche es erneut.");
     }
   };
 
   return (
     <div className="bm-bg">
-      {/* Top bar */}
       <div className="bm-topbar">
         <div className="bm-topbar-logo">
           <img src="/images/logo.png" alt="Basta Market" />
@@ -33,14 +37,12 @@ export default function Login() {
         <div className="bm-globe-icon">🌐</div>
       </div>
 
-      {/* Auth content */}
       <div className="bm-auth-page">
         <img src="/images/logo.png" alt="Basta Market" className="bm-auth-logo" />
         <div className="bm-auth-title">
           BASTA <span className="market-text">MARKET</span>
         </div>
 
-        {/* Info boxes */}
         <div className="bm-info-box">
           <div className="bm-info-box-label">Um einen Account zu erhalten, schreibe auf Telegram:</div>
           <a href="https://t.me/xervio" target="_blank" rel="noopener noreferrer">@xervio</a>
@@ -51,10 +53,15 @@ export default function Login() {
           <a href="#" onClick={(e) => e.preventDefault()}>Basta Market Chat →</a>
         </div>
 
-        {/* Login form */}
         <div className="bm-auth-card">
           <h2>Anmelden</h2>
           <p className="subtitle">Gib deine Zugangsdaten ein, um fortzufahren</p>
+
+          {error && (
+            <div style={{ background: "hsl(0 50% 15%)", color: "hsl(0 70% 65%)", padding: "8px 12px", borderRadius: 6, fontSize: 12, marginBottom: 12 }}>
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin}>
             <div className="bm-form-group">
@@ -65,6 +72,7 @@ export default function Login() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
 
@@ -78,6 +86,7 @@ export default function Login() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
+                  disabled={loading}
                 />
                 <button
                   type="button"
@@ -89,8 +98,8 @@ export default function Login() {
               </div>
             </div>
 
-            <button className="bm-btn-primary" type="submit">
-              Anmelden <span>→</span>
+            <button className="bm-btn-primary" type="submit" disabled={loading}>
+              {loading ? "Anmelden..." : "Anmelden"} <span>→</span>
             </button>
           </form>
 
