@@ -39,6 +39,12 @@ const IconProfile = () => (
   </svg>
 );
 
+const IconMessages = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+  </svg>
+);
+
 export default function RetroHeader() {
   const user = getCurrentUser();
   const navigate = useNavigate();
@@ -67,6 +73,7 @@ export default function RetroHeader() {
           <Link to="/search">Suche</Link>
           <Link to="/create-listing">Verkaufen</Link>
           <Link to="/dashboard">Dashboard</Link>
+          <Link to="/messages">Nachrichten</Link>
           <Link to="/wallet">Wallet</Link>
           {isAdmin && (
             <Link to="/admin" style={{ color: "hsl(0 70% 65%)" }}>Admin</Link>
@@ -95,6 +102,10 @@ export default function RetroHeader() {
         <Link to="/wallet" className={`bm-bottom-nav-item ${isActive("/wallet") ? "active" : ""}`}>
           <IconWallet />
           <span>Wallet</span>
+        </Link>
+        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`}>
+          <IconMessages />
+          <span>Inbox</span>
         </Link>
         <Link to="/dashboard" className={`bm-bottom-nav-item ${isActive("/dashboard") ? "active" : ""}`}>
           <IconProfile />
