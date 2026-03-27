@@ -46,9 +46,14 @@ export default function OrderDelivery({ orderId, currentUser, seller, buyer }: P
         event: "INSERT",
         schema: "public",
         table: "order_deliveries",
-        filter: `order_id=eq.${orderId}`,
       }, (payload) => {
-        setDeliveries(prev => [...prev, payload.new as Delivery]);
+        const newItem = payload.new as Delivery;
+        if (newItem.order_id === orderId) {
+          setDeliveries(prev => {
+            if (prev.some(d => d.id === newItem.id)) return prev;
+            return [...prev, newItem];
+          });
+        }
       })
       .subscribe();
 
