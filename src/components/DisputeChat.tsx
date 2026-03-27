@@ -61,7 +61,7 @@ export default function DisputeChat({ disputeId, currentUser, buyer, seller, sta
 
   const sendMessage = async () => {
     if (!text.trim() || status !== "open") return;
-    await supabase.from("dispute_messages").insert({
+    await supabase.from("dispute_messages" as any).insert({
       dispute_id: disputeId,
       sender: currentUser,
       message: text.trim(),
@@ -92,14 +92,14 @@ export default function DisputeChat({ disputeId, currentUser, buyer, seller, sta
       }
 
       // Update dispute
-      await supabase.from("disputes").update({
+      await supabase.from("disputes" as any).update({
         status: "resolved",
         resolution,
         resolved_at: new Date().toISOString(),
       }).eq("id", disputeId);
 
       // Update order status
-      const { data: dispute } = await supabase.from("disputes").select("order_id").eq("id", disputeId).single();
+      const { data: dispute } = await supabase.from("disputes" as any).select("order_id").eq("id", disputeId).single();
       if (dispute) {
         await supabase.from("orders").update({ status: resolution === "buyer" ? "refunded" : "completed" }).eq("id", dispute.order_id);
       }
@@ -108,7 +108,7 @@ export default function DisputeChat({ disputeId, currentUser, buyer, seller, sta
       const resLabel = resolution === "buyer" ? `Käufer (${buyer}) erhält ${buyerCredit.toFixed(4)} LTC zurück` :
         resolution === "seller" ? `Verkäufer (${seller}) erhält ${sellerCredit.toFixed(4)} LTC` :
         `50/50: ${buyer} erhält ${buyerCredit.toFixed(4)} LTC, ${seller} erhält ${sellerCredit.toFixed(4)} LTC`;
-      await supabase.from("dispute_messages").insert({
+      await supabase.from("dispute_messages" as any).insert({
         dispute_id: disputeId,
         sender: "SYSTEM",
         message: `✅ Fall gelöst: ${resLabel}`,
