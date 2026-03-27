@@ -97,9 +97,6 @@ export default function Login() {
           <p style={{ fontSize: 12, color: "hsl(0 0% 50%)", textAlign: "center", marginTop: 18 }}>
             Noch keinen Account? <span className="bm-link" onClick={() => navigate("/register")} style={{ cursor: "pointer" }}>Jetzt registrieren</span>
           </p>
-          <p style={{ fontSize: 11, color: "hsl(0 0% 40%)", textAlign: "center", marginTop: 8 }}>
-            Demo: darkvendor / cryptobuyer / silktrader (Passwort: pass123)
-          </p>
         </div>
       </div>
     </div>
