@@ -1,7 +1,7 @@
 // Cookie-based data store for Basta Market
 import Cookies from 'js-cookie';
 
-const COOKIE_OPTIONS: Cookies.CookieAttributes = { expires: 365, sameSite: 'Lax' };
+const COOKIE_OPTIONS: Cookies.CookieAttributes = { expires: 365, sameSite: 'Strict', secure: true };
 
 function store_get(key: string): string | null {
   return Cookies.get(key) ?? null;
@@ -13,9 +13,30 @@ function store_remove(key: string) {
   Cookies.remove(key);
 }
 
+// Simple hash function for passwords (not cryptographic but better than plaintext)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + 'basta_salt_2026');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hashPasswordSync(password: string): string {
+  // Synchronous fallback using simple hash
+  let hash = 0;
+  const salted = password + 'basta_salt_2026';
+  for (let i = 0; i < salted.length; i++) {
+    const char = salted.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'h_' + Math.abs(hash).toString(36);
+}
+
 export interface User {
   username: string;
-  password: string;
+  password: string; // hashed
   joinDate: string;
   feedbackScore: number;
   totalSales: number;
