@@ -73,6 +73,7 @@ export default function RetroHeader() {
           <Link to="/search">Suche</Link>
           <Link to="/create-listing">Verkaufen</Link>
           <Link to="/dashboard">Dashboard</Link>
+          <Link to="/messages">Nachrichten</Link>
           <Link to="/wallet">Wallet</Link>
           {isAdmin && (
             <Link to="/admin" style={{ color: "hsl(0 70% 65%)" }}>Admin</Link>
