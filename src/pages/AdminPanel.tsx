@@ -171,7 +171,7 @@ export default function AdminPanel() {
               {tab === 'overview' && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                   {[
-                    { label: "Benutzer", value: localUsers.length, icon: "👤" },
+                    { label: "Benutzer", value: wallets.length, icon: "👤" },
                     { label: "Produkte", value: listings.length, icon: "📦" },
                     { label: "Kategorien", value: categories.length, icon: "🏷" },
                     { label: "Bestellungen", value: orders.length, icon: "🛒" },
