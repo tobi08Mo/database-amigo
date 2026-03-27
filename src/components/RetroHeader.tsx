@@ -98,7 +98,17 @@ export default function RetroHeader() {
           <Link to="/search">Suche</Link>
           <Link to="/create-listing">Verkaufen</Link>
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/messages">Nachrichten</Link>
+          <Link to="/messages" style={{ position: "relative" }}>
+            Nachrichten
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: -6, right: -14,
+                background: "hsl(0 70% 50%)", color: "#fff",
+                fontSize: 9, fontWeight: 700, borderRadius: "50%",
+                width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>{unreadCount}</span>
+            )}
+          </Link>
           <Link to="/wallet">Wallet</Link>
           {isAdmin && (
             <Link to="/admin" style={{ color: "hsl(0 70% 65%)" }}>Admin</Link>
