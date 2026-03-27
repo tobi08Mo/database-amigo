@@ -82,8 +82,8 @@ export default function AdminPanel() {
     ]);
     if (listingsRes.data) setListings(listingsRes.data);
     if (ordersRes.data) setOrders(ordersRes.data);
-    if (walletsRes.data) setWallets(walletsRes.data);
-    if (disputesRes.data) setAllDisputes(disputesRes.data as DbDispute[]);
+    if (walletsRes.data) setWallets(walletsRes.data as DbWallet[]);
+    if (disputesRes.data) setAllDisputes(disputesRes.data as unknown as DbDispute[]);
     setLoading(false);
   };
 
