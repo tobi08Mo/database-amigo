@@ -127,6 +127,21 @@ export default function Dashboard() {
 
   const tabClass = (t: string) => t === tab ? "bm-tab bm-tab-active" : "bm-tab bm-tab-inactive";
 
+  const handleOpenDispute = async (order: DBOrder) => {
+    if (!disputeReason.trim()) { alert("Bitte Grund angeben."); return; }
+    if (!confirm("Rückerstattung beantragen? Ein Admin wird den Fall prüfen.")) return;
+    await supabase.from("disputes").insert({
+      order_id: order.id,
+      buyer: order.buyer,
+      seller: order.seller,
+      reason: disputeReason.trim(),
+    });
+    await supabase.from("orders").update({ status: "disputed" }).eq("id", order.id);
+    setDisputeReason("");
+    loadData();
+    alert("✓ Rückerstattung beantragt. Ein Admin wird den Fall prüfen.");
+  };
+
   const statusLabel = (s: string) => {
     switch (s) {
       case 'escrow': return { text: 'ESCROW', color: 'hsl(48 100% 50%)' };
