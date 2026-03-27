@@ -177,6 +177,7 @@ export default function AdminPanel() {
                     { label: "Bestellungen", value: orders.length, icon: "🛒" },
                     { label: "Aktive Listings", value: listings.filter(p => p.active).length, icon: "✅" },
                     { label: "Abgeschlossen", value: orders.filter(o => o.status === 'completed').length, icon: "✓" },
+                    { label: "Offene Disputes", value: allDisputes.filter(d => d.status === 'open').length, icon: "⚖️" },
                   ].map((s, i) => (
                     <div key={i} className="bm-card" style={{ textAlign: "center", padding: 16 }}>
                       <div style={{ fontSize: 24, marginBottom: 4 }}>{s.icon}</div>
