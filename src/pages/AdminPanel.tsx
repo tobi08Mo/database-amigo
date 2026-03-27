@@ -32,6 +32,7 @@ interface DbOrder {
 interface DbWallet {
   username: string;
   ltc_balance: number;
+  created_at: string;
 }
 
 interface DbDispute {
