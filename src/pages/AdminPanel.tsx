@@ -74,14 +74,16 @@ export default function AdminPanel() {
 
   const loadData = async () => {
     setLoading(true);
-    const [listingsRes, ordersRes, walletsRes] = await Promise.all([
+    const [listingsRes, ordersRes, walletsRes, disputesRes] = await Promise.all([
       supabase.from("listings").select("*").order("created_at", { ascending: false }),
       supabase.from("orders").select("*").order("created_at", { ascending: false }),
       supabase.from("wallets").select("username, ltc_balance"),
+      supabase.from("disputes").select("*").order("created_at", { ascending: false }),
     ]);
     if (listingsRes.data) setListings(listingsRes.data);
     if (ordersRes.data) setOrders(ordersRes.data);
     if (walletsRes.data) setWallets(walletsRes.data);
+    if (disputesRes.data) setAllDisputes(disputesRes.data as DbDispute[]);
     setLoading(false);
   };
 
