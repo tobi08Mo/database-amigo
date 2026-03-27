@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameCategory, deleteCategory, getUsers } from "@/lib/store";
+import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameCategory, deleteCategory } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
