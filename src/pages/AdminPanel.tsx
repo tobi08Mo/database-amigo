@@ -49,7 +49,7 @@ interface DbDispute {
 export default function AdminPanel() {
   const user = getCurrentUser();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'products' | 'categories' | 'users' | 'overview'>('overview');
+  const [tab, setTab] = useState<'products' | 'categories' | 'users' | 'overview' | 'disputes'>('overview');
   const [newCat, setNewCat] = useState("");
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editCatName, setEditCatName] = useState("");
