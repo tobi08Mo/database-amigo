@@ -44,7 +44,7 @@ export default function Login() {
         </div>
 
         <div className="bm-info-box">
-          <div className="bm-info-box-label">Um einen Account zu erhalten, schreibe auf Telegram:</div>
+          <div className="bm-info-box-label">Für Support schreibe auf Telegram:</div>
           <a href="https://t.me/xervio" target="_blank" rel="noopener noreferrer">@xervio</a>
         </div>
 
