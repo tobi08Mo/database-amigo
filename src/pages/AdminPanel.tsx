@@ -150,10 +150,15 @@ export default function AdminPanel() {
           <h1 style={{ margin: 0, color: "hsl(0 70% 65%)" }}>Admin Panel</h1>
         </div>
 
-        <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1 }}>
-          {(['overview', 'products', 'categories', 'users'] as const).map(t => (
-            <span key={t} className={tabClass(t)} onClick={() => setTab(t)} style={{ cursor: "pointer" }}>
-              {t === 'overview' ? '📊 Übersicht' : t === 'products' ? '📦 Produkte' : t === 'categories' ? '🏷 Kategorien' : '👤 Benutzer'}
+        <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1, flexWrap: "wrap" }}>
+          {(['overview', 'disputes', 'products', 'categories', 'users'] as const).map(t => (
+            <span key={t} className={tabClass(t)} onClick={() => setTab(t)} style={{ cursor: "pointer", position: "relative" }}>
+              {t === 'overview' ? '📊 Übersicht' : t === 'disputes' ? '⚖️ Disputes' : t === 'products' ? '📦 Produkte' : t === 'categories' ? '🏷 Kategorien' : '👤 Benutzer'}
+              {t === 'disputes' && allDisputes.filter(d => d.status === 'open').length > 0 && (
+                <span style={{ background: "hsl(0 70% 50%)", color: "white", fontSize: 10, fontWeight: 700, borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", marginLeft: 4 }}>
+                  {allDisputes.filter(d => d.status === 'open').length}
+                </span>
+              )}
             </span>
           ))}
         </div>
