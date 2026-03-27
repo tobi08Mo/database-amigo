@@ -1,4 +1,17 @@
-// localStorage-based data store for Basta Market
+// Cookie-based data store for Basta Market
+import Cookies from 'js-cookie';
+
+const COOKIE_OPTIONS: Cookies.CookieAttributes = { expires: 365, sameSite: 'Lax' };
+
+function store_get(key: string): string | null {
+  return Cookies.get(key) ?? null;
+}
+function store_set(key: string, value: string) {
+  Cookies.set(key, value, COOKIE_OPTIONS);
+}
+function store_remove(key: string) {
+  Cookies.remove(key);
+}
 
 export interface User {
   username: string;
@@ -70,10 +83,10 @@ function generateLtcAddress(): string {
 
 // --- Users ---
 export function getUsers(): User[] {
-  return JSON.parse(localStorage.getItem('bm_users') || '[]');
+  return JSON.parse(store_get('bm_users') || '[]');
 }
 function saveUsers(users: User[]) {
-  localStorage.setItem('bm_users', JSON.stringify(users));
+  store_set('bm_users', JSON.stringify(users));
 }
 export function registerUser(username: string, password: string, isAdmin = false): User | null {
   const users = getUsers();
@@ -89,11 +102,11 @@ export function registerUser(username: string, password: string, isAdmin = false
 }
 export function loginUser(username: string, password: string): User | null {
   const user = getUsers().find(u => u.username === username && u.password === password);
-  if (user) localStorage.setItem('bm_currentUser', username);
+  if (user) store_set('bm_currentUser', username);
   return user || null;
 }
 export function getCurrentUser(): User | null {
-  const name = localStorage.getItem('bm_currentUser');
+  const name = store_get('bm_currentUser');
   if (!name) return null;
   return getUsers().find(u => u.username === name) || null;
 }
@@ -101,7 +114,7 @@ export function isCurrentUserAdmin(): boolean {
   const user = getCurrentUser();
   return user?.isAdmin === true;
 }
-export function logout() { localStorage.removeItem('bm_currentUser'); }
+export function logout() { store_remove('bm_currentUser'); }
 export function getUserByName(name: string): User | null {
   return getUsers().find(u => u.username === name) || null;
 }
@@ -118,12 +131,12 @@ export function deleteUser(username: string) {
 const DEFAULT_CATEGORIES = ['Electronics', 'Digital Goods', 'Books', 'Services', 'Software', 'Other'];
 
 export function getCategories(): string[] {
-  const stored = localStorage.getItem('bm_categories');
+  const stored = store_get('bm_categories');
   if (stored) return JSON.parse(stored);
   return DEFAULT_CATEGORIES;
 }
 function saveCategories(cats: string[]) {
-  localStorage.setItem('bm_categories', JSON.stringify(cats));
+  store_set('bm_categories', JSON.stringify(cats));
 }
 export function addCategory(name: string): boolean {
   const cats = getCategories();
@@ -139,7 +152,6 @@ export function renameCategory(oldName: string, newName: string): boolean {
   if (cats.find(c => c.toLowerCase() === newName.toLowerCase() && c !== oldName)) return false;
   cats[idx] = newName;
   saveCategories(cats);
-  // Update all products with old category
   const products = getProducts();
   products.forEach(p => { if (p.category === oldName) p.category = newName; });
   saveProducts(products);
@@ -154,10 +166,10 @@ export function getCategoriesWithAll(): string[] {
 
 // --- Products ---
 export function getProducts(): Product[] {
-  return JSON.parse(localStorage.getItem('bm_products') || '[]');
+  return JSON.parse(store_get('bm_products') || '[]');
 }
 function saveProducts(products: Product[]) {
-  localStorage.setItem('bm_products', JSON.stringify(products));
+  store_set('bm_products', JSON.stringify(products));
 }
 export function createProduct(p: Omit<Product, 'id' | 'createdAt' | 'active'>): Product {
   const products = getProducts();
@@ -180,10 +192,10 @@ export function deleteProduct(id: string) {
 
 // --- Orders ---
 export function getOrders(): Order[] {
-  return JSON.parse(localStorage.getItem('bm_orders') || '[]');
+  return JSON.parse(store_get('bm_orders') || '[]');
 }
 function saveOrders(orders: Order[]) {
-  localStorage.setItem('bm_orders', JSON.stringify(orders));
+  store_set('bm_orders', JSON.stringify(orders));
 }
 export function createOrder(productId: string, buyer: string): Order | null {
   const product = getProductById(productId);
@@ -222,10 +234,10 @@ export function updateOrderStatus(orderId: string, status: Order['status']) {
 
 // --- Messages ---
 export function getMessages(): Message[] {
-  return JSON.parse(localStorage.getItem('bm_messages') || '[]');
+  return JSON.parse(store_get('bm_messages') || '[]');
 }
 function saveMessages(messages: Message[]) {
-  localStorage.setItem('bm_messages', JSON.stringify(messages));
+  store_set('bm_messages', JSON.stringify(messages));
 }
 export function sendMessage(from: string, to: string, subject: string, body: string): Message {
   const msg: Message = { id: generateId(), from, to, subject, body, date: new Date().toISOString().split('T')[0], read: false };
@@ -242,10 +254,10 @@ export function markMessageRead(id: string) {
 
 // --- Reviews ---
 export function getReviews(): Review[] {
-  return JSON.parse(localStorage.getItem('bm_reviews') || '[]');
+  return JSON.parse(store_get('bm_reviews') || '[]');
 }
 function saveReviews(reviews: Review[]) {
-  localStorage.setItem('bm_reviews', JSON.stringify(reviews));
+  store_set('bm_reviews', JSON.stringify(reviews));
 }
 export function createReview(orderId: string, from: string, to: string, rating: number, text: string): Review {
   const review: Review = { id: generateId(), orderId, from, to, rating, text, date: new Date().toISOString().split('T')[0] };
@@ -261,9 +273,7 @@ export function createReview(orderId: string, from: string, to: string, rating: 
 // --- Seed Data ---
 export function seedIfEmpty() {
   if (getUsers().length > 0) return;
-  // Admin
   registerUser('ADMkz', 'ADMkz777', true);
-  // Demo users
   registerUser('darkvendor', 'pass123');
   registerUser('cryptobuyer', 'pass123');
   registerUser('silktrader', 'pass123');
