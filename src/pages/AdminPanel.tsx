@@ -88,7 +88,7 @@ export default function AdminPanel() {
     setLoading(false);
   };
 
-  if (!user || !isCurrentUserAdmin()) return null;
+  if (!user || !isAdmin) return null;
 
   const handleAddCategory = () => {
     if (!newCat.trim()) return;
