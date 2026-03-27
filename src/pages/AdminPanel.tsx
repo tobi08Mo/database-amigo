@@ -270,14 +270,13 @@ export default function AdminPanel() {
 
               {tab === 'users' && (
                 <table className="bm-table">
-                  <thead><tr><th>Username</th><th style={{ width: 70 }}>Rolle</th><th style={{ width: 90 }}>Guthaben (LTC)</th><th style={{ width: 80 }}>Beitritt</th></tr></thead>
+                  <thead><tr><th>Username</th><th style={{ width: 90 }}>Guthaben (LTC)</th><th style={{ width: 120 }}>Registriert</th></tr></thead>
                   <tbody>
-                    {localUsers.map(u => (
-                      <tr key={u.username}>
-                        <td style={{ fontWeight: 500 }}>{u.username}</td>
-                        <td>{u.isAdmin ? <span className="bm-badge" style={{ background: "hsl(0 50% 25%)", color: "hsl(0 70% 70%)" }}>Admin</span> : <span className="bm-badge">User</span>}</td>
-                        <td className="bm-ltc">{getWalletBalance(u.username).toFixed(4)}</td>
-                        <td className="bm-dim" style={{ fontSize: 11 }}>{u.joinDate}</td>
+                    {wallets.map(w => (
+                      <tr key={w.username}>
+                        <td style={{ fontWeight: 500 }}>{w.username}</td>
+                        <td className="bm-ltc">{w.ltc_balance.toFixed(4)}</td>
+                        <td className="bm-dim" style={{ fontSize: 11 }}>{new Date(w.created_at).toLocaleDateString("de-DE")}</td>
                       </tr>
                     ))}
                   </tbody>
