@@ -66,7 +66,6 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
 
   const categories = getCategories();
-  const localUsers = getUsers();
 
   useEffect(() => {
     if (!user || !isCurrentUserAdmin()) { navigate("/home"); return; }
