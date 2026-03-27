@@ -34,6 +34,18 @@ interface DbWallet {
   ltc_balance: number;
 }
 
+interface DbDispute {
+  id: string;
+  order_id: string;
+  buyer: string;
+  seller: string;
+  reason: string;
+  status: string;
+  resolution: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
 export default function AdminPanel() {
   const user = getCurrentUser();
   const navigate = useNavigate();
