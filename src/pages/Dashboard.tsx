@@ -147,6 +147,8 @@ export default function Dashboard() {
       case 'escrow': return { text: 'ESCROW', color: 'hsl(48 100% 50%)' };
       case 'delivered': return { text: 'GELIEFERT', color: 'hsl(200 70% 55%)' };
       case 'completed': return { text: 'ABGESCHLOSSEN', color: 'hsl(120 60% 45%)' };
+      case 'disputed': return { text: 'DISPUTE', color: 'hsl(0 70% 55%)' };
+      case 'refunded': return { text: 'ERSTATTET', color: 'hsl(280 60% 60%)' };
       default: return { text: s.toUpperCase(), color: 'hsl(0 0% 60%)' };
     }
   };
