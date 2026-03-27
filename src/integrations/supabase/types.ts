@@ -82,6 +82,36 @@ export type Database = {
         }
         Relationships: []
       }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          from_user: string
+          id: string
+          read: boolean
+          subject: string
+          to_user: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          from_user: string
+          id?: string
+          read?: boolean
+          subject?: string
+          to_user: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          from_user?: string
+          id?: string
+          read?: boolean
+          subject?: string
+          to_user?: string
+        }
+        Relationships: []
+      }
       order_deliveries: {
         Row: {
           created_at: string
