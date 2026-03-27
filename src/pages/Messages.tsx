@@ -29,12 +29,11 @@ export default function Messages() {
   const [tab, setTab] = useState<'inbox' | 'sent'>('inbox');
   const [loading, setLoading] = useState(true);
 
-  if (!user) { navigate("/"); return null; }
-
-  const username = user.username;
+  const username = user?.username || "";
 
   // Load messages
   useEffect(() => {
+    if (!username) return;
     (async () => {
       const { data } = await supabase
         .from("messages")
