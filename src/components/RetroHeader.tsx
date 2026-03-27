@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getCurrentUser, logout, isCurrentUserAdmin } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const IconHome = () => (
@@ -50,6 +52,29 @@ export default function RetroHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdmin = isCurrentUserAdmin();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.username) return;
+    const fetchUnread = async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("to_user", user.username)
+        .eq("read", false);
+      setUnreadCount(count || 0);
+    };
+    fetchUnread();
+
+    const channel = supabase
+      .channel(`header-unread-${user.username}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        fetchUnread();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.username]);
 
   const handleLogout = () => {
     logout();
@@ -73,7 +98,17 @@ export default function RetroHeader() {
           <Link to="/search">Suche</Link>
           <Link to="/create-listing">Verkaufen</Link>
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/messages">Nachrichten</Link>
+          <Link to="/messages" style={{ position: "relative" }}>
+            Nachrichten
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: -6, right: -14,
+                background: "hsl(0 70% 50%)", color: "#fff",
+                fontSize: 9, fontWeight: 700, borderRadius: "50%",
+                width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>{unreadCount}</span>
+            )}
+          </Link>
           <Link to="/wallet">Wallet</Link>
           {isAdmin && (
             <Link to="/admin" style={{ color: "hsl(0 70% 65%)" }}>Admin</Link>
@@ -103,8 +138,15 @@ export default function RetroHeader() {
           <IconWallet />
           <span>Wallet</span>
         </Link>
-        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`}>
+        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`} style={{ position: "relative" }}>
           <IconMessages />
+          {unreadCount > 0 && (
+            <span style={{
+              position: "absolute", top: 2, right: "50%", marginRight: -18,
+              background: "hsl(0 70% 50%)", borderRadius: "50%",
+              width: 8, height: 8, display: "block",
+            }} />
+          )}
           <span>Inbox</span>
         </Link>
         <Link to="/dashboard" className={`bm-bottom-nav-item ${isActive("/dashboard") ? "active" : ""}`}>
