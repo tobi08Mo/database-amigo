@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { useLtcEurRate } from "@/hooks/useLtcEurRate";
 import OrderDelivery from "@/components/OrderDelivery";
+import DisputeChat from "@/components/DisputeChat";
 
 interface DBOrder {
   id: string;
@@ -37,6 +38,8 @@ export default function Dashboard() {
   const [listings, setListings] = useState<DBListing[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [disputes, setDisputes] = useState<Record<string, any>>({});
+  const [disputeReason, setDisputeReason] = useState("");
   const username = user?.username;
 
   useEffect(() => {
@@ -81,6 +84,17 @@ export default function Dashboard() {
       .eq("username", username)
       .single();
     setWalletBalance(wallet?.ltc_balance || 0);
+
+    // Load disputes for user's orders
+    const { data: disputeData } = await supabase
+      .from("disputes")
+      .select("*")
+      .or(`buyer.eq.${username},seller.eq.${username}`);
+    if (disputeData) {
+      const map: Record<string, any> = {};
+      disputeData.forEach((d: any) => { map[d.order_id] = d; });
+      setDisputes(map);
+    }
   };
 
   const buyOrders = orders.filter(o => o.buyer === user.username);
@@ -113,11 +127,28 @@ export default function Dashboard() {
 
   const tabClass = (t: string) => t === tab ? "bm-tab bm-tab-active" : "bm-tab bm-tab-inactive";
 
+  const handleOpenDispute = async (order: DBOrder) => {
+    if (!disputeReason.trim()) { alert("Bitte Grund angeben."); return; }
+    if (!confirm("Rückerstattung beantragen? Ein Admin wird den Fall prüfen.")) return;
+    await supabase.from("disputes").insert({
+      order_id: order.id,
+      buyer: order.buyer,
+      seller: order.seller,
+      reason: disputeReason.trim(),
+    });
+    await supabase.from("orders").update({ status: "disputed" }).eq("id", order.id);
+    setDisputeReason("");
+    loadData();
+    alert("✓ Rückerstattung beantragt. Ein Admin wird den Fall prüfen.");
+  };
+
   const statusLabel = (s: string) => {
     switch (s) {
       case 'escrow': return { text: 'ESCROW', color: 'hsl(48 100% 50%)' };
       case 'delivered': return { text: 'GELIEFERT', color: 'hsl(200 70% 55%)' };
       case 'completed': return { text: 'ABGESCHLOSSEN', color: 'hsl(120 60% 45%)' };
+      case 'disputed': return { text: 'DISPUTE', color: 'hsl(0 70% 55%)' };
+      case 'refunded': return { text: 'ERSTATTET', color: 'hsl(280 60% 60%)' };
       default: return { text: s.toUpperCase(), color: 'hsl(0 0% 60%)' };
     }
   };
@@ -265,10 +296,12 @@ export default function Dashboard() {
                     )}
                   </h2>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-                    {sellOrders.map(o => (
+                    {sellOrders.map(o => {
+                      const dispute = disputes[o.id];
+                      return (
                       <div key={o.id} className="bm-card" style={{
                         padding: 12,
-                        borderLeft: (o.status === 'escrow' || o.status === 'delivered') ? "3px solid hsl(48 80% 50%)" : "3px solid hsl(0 0% 25%)",
+                        borderLeft: o.status === 'disputed' ? "3px solid hsl(0 70% 50%)" : (o.status === 'escrow' || o.status === 'delivered') ? "3px solid hsl(48 80% 50%)" : "3px solid hsl(0 0% 25%)",
                       }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                           <div>
@@ -276,6 +309,9 @@ export default function Dashboard() {
                               {o.product_title}
                               {o.status === 'escrow' && (
                                 <span style={{ color: "hsl(48 100% 60%)", fontSize: 11, marginLeft: 8 }}>⚠️ Warte auf Lieferung</span>
+                              )}
+                              {o.status === 'disputed' && (
+                                <span style={{ color: "hsl(0 70% 60%)", fontSize: 11, marginLeft: 8 }}>⚠️ Dispute eröffnet</span>
                               )}
                             </div>
                             <div className="bm-dim" style={{ fontSize: 11 }}>
@@ -301,8 +337,21 @@ export default function Dashboard() {
                         {expandedOrder === o.id && (
                           <OrderDelivery orderId={o.id} currentUser={user.username} seller={o.seller} buyer={o.buyer} />
                         )}
+                        {dispute && (
+                          <DisputeChat
+                            disputeId={dispute.id}
+                            currentUser={user.username}
+                            buyer={o.buyer}
+                            seller={o.seller}
+                            status={dispute.status}
+                            priceEur={o.price_eur}
+                            priceLtc={o.price_ltc}
+                            onResolved={loadData}
+                          />
+                        )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </>
               )}
@@ -310,8 +359,10 @@ export default function Dashboard() {
               <h2>Meine Käufe</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {buyOrders.length === 0 && <p className="bm-dim" style={{ textAlign: "center" }}>Keine Käufe.</p>}
-                {buyOrders.map(o => (
-                  <div key={o.id} className="bm-card" style={{ padding: 12 }}>
+                {buyOrders.map(o => {
+                  const dispute = disputes[o.id];
+                  return (
+                  <div key={o.id} className="bm-card" style={{ padding: 12, borderLeft: o.status === 'disputed' ? "3px solid hsl(0 70% 50%)" : undefined }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 13 }}>{o.product_title}</div>
@@ -322,20 +373,56 @@ export default function Dashboard() {
                           </span>
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: 6 }}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         <button className="bm-btn-secondary" onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)} style={{ fontSize: 11 }}>
                           {expandedOrder === o.id ? "Schließen" : "📦 Lieferung"}
                         </button>
                         {(o.status === 'escrow' || o.status === 'delivered') && (
                           <button className="bm-btn-primary" onClick={() => handleConfirm(o.id)} style={{ fontSize: 11 }}>✓ Empfangen</button>
                         )}
+                        {(o.status === 'escrow' || o.status === 'delivered') && !dispute && (
+                          <button className="bm-btn-danger" onClick={() => setExpandedOrder(expandedOrder === `dispute-${o.id}` ? null : `dispute-${o.id}`)} style={{ fontSize: 11 }}>
+                            ⚠️ Rückerstattung
+                          </button>
+                        )}
                       </div>
                     </div>
+
+                    {/* Dispute request form */}
+                    {expandedOrder === `dispute-${o.id}` && !dispute && (
+                      <div style={{ marginTop: 10, padding: 10, border: "1px solid hsl(0 50% 30%)", background: "hsl(0 30% 12%)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "hsl(0 70% 65%)", marginBottom: 6 }}>⚠️ Rückerstattung beantragen</div>
+                        <input
+                          className="bm-form-input"
+                          placeholder="Grund für die Rückerstattung..."
+                          value={disputeReason}
+                          onChange={e => setDisputeReason(e.target.value)}
+                          style={{ marginBottom: 6, fontSize: 12 }}
+                        />
+                        <button className="bm-btn-danger" onClick={() => handleOpenDispute(o)} style={{ fontSize: 11 }}>Absenden</button>
+                      </div>
+                    )}
+
+                    {/* Active dispute chat */}
+                    {dispute && (
+                      <DisputeChat
+                        disputeId={dispute.id}
+                        currentUser={user.username}
+                        buyer={o.buyer}
+                        seller={o.seller}
+                        status={dispute.status}
+                        priceEur={o.price_eur}
+                        priceLtc={o.price_ltc}
+                        onResolved={loadData}
+                      />
+                    )}
+
                     {expandedOrder === o.id && (
                       <OrderDelivery orderId={o.id} currentUser={user.username} seller={o.seller} buyer={o.buyer} />
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {sellOrders.length === 0 && (

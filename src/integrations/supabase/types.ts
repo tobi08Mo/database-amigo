@@ -14,6 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      dispute_messages: {
+        Row: {
+          created_at: string
+          dispute_id: string
+          id: string
+          message: string
+          sender: string
+        }
+        Insert: {
+          created_at?: string
+          dispute_id: string
+          id?: string
+          message?: string
+          sender: string
+        }
+        Update: {
+          created_at?: string
+          dispute_id?: string
+          id?: string
+          message?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_messages_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          buyer: string
+          created_at: string
+          id: string
+          order_id: string
+          reason: string
+          resolution: string | null
+          resolved_at: string | null
+          seller: string
+          status: string
+        }
+        Insert: {
+          buyer: string
+          created_at?: string
+          id?: string
+          order_id: string
+          reason?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          seller: string
+          status?: string
+        }
+        Update: {
+          buyer?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          reason?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          seller?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_images: {
         Row: {
           created_at: string

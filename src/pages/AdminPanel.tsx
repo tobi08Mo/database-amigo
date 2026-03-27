@@ -4,6 +4,7 @@ import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameC
 import { supabase } from "@/integrations/supabase/client";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
+import DisputeChat from "@/components/DisputeChat";
 
 interface DbListing {
   id: string;
@@ -33,10 +34,22 @@ interface DbWallet {
   ltc_balance: number;
 }
 
+interface DbDispute {
+  id: string;
+  order_id: string;
+  buyer: string;
+  seller: string;
+  reason: string;
+  status: string;
+  resolution: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
 export default function AdminPanel() {
   const user = getCurrentUser();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'products' | 'categories' | 'users' | 'overview'>('overview');
+  const [tab, setTab] = useState<'products' | 'categories' | 'users' | 'overview' | 'disputes'>('overview');
   const [newCat, setNewCat] = useState("");
   const [editingCat, setEditingCat] = useState<string | null>(null);
   const [editCatName, setEditCatName] = useState("");
@@ -47,6 +60,8 @@ export default function AdminPanel() {
   const [listings, setListings] = useState<DbListing[]>([]);
   const [orders, setOrders] = useState<DbOrder[]>([]);
   const [wallets, setWallets] = useState<DbWallet[]>([]);
+  const [allDisputes, setAllDisputes] = useState<DbDispute[]>([]);
+  const [expandedDispute, setExpandedDispute] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const categories = getCategories();
@@ -59,14 +74,16 @@ export default function AdminPanel() {
 
   const loadData = async () => {
     setLoading(true);
-    const [listingsRes, ordersRes, walletsRes] = await Promise.all([
+    const [listingsRes, ordersRes, walletsRes, disputesRes] = await Promise.all([
       supabase.from("listings").select("*").order("created_at", { ascending: false }),
       supabase.from("orders").select("*").order("created_at", { ascending: false }),
       supabase.from("wallets").select("username, ltc_balance"),
+      supabase.from("disputes").select("*").order("created_at", { ascending: false }),
     ]);
     if (listingsRes.data) setListings(listingsRes.data);
     if (ordersRes.data) setOrders(ordersRes.data);
     if (walletsRes.data) setWallets(walletsRes.data);
+    if (disputesRes.data) setAllDisputes(disputesRes.data as DbDispute[]);
     setLoading(false);
   };
 
@@ -133,10 +150,15 @@ export default function AdminPanel() {
           <h1 style={{ margin: 0, color: "hsl(0 70% 65%)" }}>Admin Panel</h1>
         </div>
 
-        <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1 }}>
-          {(['overview', 'products', 'categories', 'users'] as const).map(t => (
-            <span key={t} className={tabClass(t)} onClick={() => setTab(t)} style={{ cursor: "pointer" }}>
-              {t === 'overview' ? '📊 Übersicht' : t === 'products' ? '📦 Produkte' : t === 'categories' ? '🏷 Kategorien' : '👤 Benutzer'}
+        <div style={{ display: "flex", gap: 0, marginBottom: -1, position: "relative", zIndex: 1, flexWrap: "wrap" }}>
+          {(['overview', 'disputes', 'products', 'categories', 'users'] as const).map(t => (
+            <span key={t} className={tabClass(t)} onClick={() => setTab(t)} style={{ cursor: "pointer", position: "relative" }}>
+              {t === 'overview' ? '📊 Übersicht' : t === 'disputes' ? '⚖️ Disputes' : t === 'products' ? '📦 Produkte' : t === 'categories' ? '🏷 Kategorien' : '👤 Benutzer'}
+              {t === 'disputes' && allDisputes.filter(d => d.status === 'open').length > 0 && (
+                <span style={{ background: "hsl(0 70% 50%)", color: "white", fontSize: 10, fontWeight: 700, borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", marginLeft: 4 }}>
+                  {allDisputes.filter(d => d.status === 'open').length}
+                </span>
+              )}
             </span>
           ))}
         </div>
@@ -155,6 +177,7 @@ export default function AdminPanel() {
                     { label: "Bestellungen", value: orders.length, icon: "🛒" },
                     { label: "Aktive Listings", value: listings.filter(p => p.active).length, icon: "✅" },
                     { label: "Abgeschlossen", value: orders.filter(o => o.status === 'completed').length, icon: "✓" },
+                    { label: "Offene Disputes", value: allDisputes.filter(d => d.status === 'open').length, icon: "⚖️" },
                   ].map((s, i) => (
                     <div key={i} className="bm-card" style={{ textAlign: "center", padding: 16 }}>
                       <div style={{ fontSize: 24, marginBottom: 4 }}>{s.icon}</div>
@@ -259,6 +282,70 @@ export default function AdminPanel() {
                     ))}
                   </tbody>
                 </table>
+              )}
+
+              {tab === 'disputes' && (
+                <>
+                  <h2 style={{ color: "hsl(0 70% 65%)" }}>⚖️ Dispute-Fälle</h2>
+                  {allDisputes.length === 0 && <p className="bm-dim" style={{ textAlign: "center" }}>Keine Disputes.</p>}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {allDisputes.map(d => {
+                      const order = orders.find(o => o.id === d.order_id);
+                      return (
+                        <div key={d.id} className="bm-card" style={{
+                          padding: 14,
+                          borderLeft: d.status === 'open' ? "3px solid hsl(0 70% 50%)" : "3px solid hsl(120 60% 40%)",
+                        }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 13 }}>
+                                {order?.product_title || "Unbekannt"}
+                                <span style={{
+                                  marginLeft: 8, fontSize: 10, fontWeight: 700, padding: "2px 6px",
+                                  background: d.status === 'open' ? "hsl(0 50% 20%)" : "hsl(120 40% 18%)",
+                                  color: d.status === 'open' ? "hsl(0 70% 65%)" : "hsl(120 60% 55%)",
+                                }}>
+                                  {d.status === 'open' ? 'OFFEN' : 'GELÖST'}
+                                </span>
+                                {d.resolution && (
+                                  <span style={{ marginLeft: 6, fontSize: 10, color: "hsl(0 0% 60%)" }}>
+                                    ({d.resolution === 'buyer' ? 'Käufer erstattet' : d.resolution === 'seller' ? 'Verkäufer bezahlt' : '50/50'})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="bm-dim" style={{ fontSize: 11, marginTop: 2 }}>
+                                Käufer: {d.buyer} · Verkäufer: {d.seller} · {order ? `${order.price_eur.toFixed(2)} €` : ''} · {new Date(d.created_at).toLocaleString("de-DE")}
+                              </div>
+                              <div style={{ fontSize: 11, marginTop: 4, fontStyle: "italic" }} className="bm-dim">
+                                Grund: "{d.reason}"
+                              </div>
+                            </div>
+                            <button
+                              className="bm-btn-secondary"
+                              onClick={() => setExpandedDispute(expandedDispute === d.id ? null : d.id)}
+                              style={{ fontSize: 11 }}
+                            >
+                              {expandedDispute === d.id ? "Schließen" : "💬 Chat öffnen"}
+                            </button>
+                          </div>
+                          {expandedDispute === d.id && order && (
+                            <DisputeChat
+                              disputeId={d.id}
+                              currentUser={user!.username}
+                              buyer={d.buyer}
+                              seller={d.seller}
+                              status={d.status}
+                              priceEur={order.price_eur}
+                              priceLtc={order.price_ltc}
+                              isAdmin={true}
+                              onResolved={loadData}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </>
           )}
