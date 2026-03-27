@@ -38,6 +38,8 @@ export default function Dashboard() {
   const [listings, setListings] = useState<DBListing[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [disputes, setDisputes] = useState<Record<string, any>>({});
+  const [disputeReason, setDisputeReason] = useState("");
   const username = user?.username;
 
   useEffect(() => {
