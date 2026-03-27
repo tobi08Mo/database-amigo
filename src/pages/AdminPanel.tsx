@@ -47,7 +47,7 @@ interface DbDispute {
   created_at: string;
   resolved_at: string | null;
 }
-
+export default function AdminPanel() {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin ?? false;
   const navigate = useNavigate();
