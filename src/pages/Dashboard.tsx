@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { useLtcEurRate } from "@/hooks/useLtcEurRate";
 import OrderDelivery from "@/components/OrderDelivery";
+import DisputeChat from "@/components/DisputeChat";
 
 interface DBOrder {
   id: string;
