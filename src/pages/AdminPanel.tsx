@@ -60,6 +60,8 @@ export default function AdminPanel() {
   const [listings, setListings] = useState<DbListing[]>([]);
   const [orders, setOrders] = useState<DbOrder[]>([]);
   const [wallets, setWallets] = useState<DbWallet[]>([]);
+  const [allDisputes, setAllDisputes] = useState<DbDispute[]>([]);
+  const [expandedDispute, setExpandedDispute] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const categories = getCategories();
