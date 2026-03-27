@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getCurrentUser, logout, isCurrentUserAdmin } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 const IconHome = () => (
