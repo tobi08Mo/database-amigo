@@ -84,6 +84,17 @@ export default function Dashboard() {
       .eq("username", username)
       .single();
     setWalletBalance(wallet?.ltc_balance || 0);
+
+    // Load disputes for user's orders
+    const { data: disputeData } = await supabase
+      .from("disputes")
+      .select("*")
+      .or(`buyer.eq.${username},seller.eq.${username}`);
+    if (disputeData) {
+      const map: Record<string, any> = {};
+      disputeData.forEach((d: any) => { map[d.order_id] = d; });
+      setDisputes(map);
+    }
   };
 
   const buyOrders = orders.filter(o => o.buyer === user.username);
