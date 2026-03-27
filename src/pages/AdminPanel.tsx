@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameCategory, deleteCategory, getUsers } from "@/lib/store";
+import { getCurrentUser, isCurrentUserAdmin, getCategories, addCategory, renameCategory, deleteCategory } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
@@ -32,6 +32,7 @@ interface DbOrder {
 interface DbWallet {
   username: string;
   ltc_balance: number;
+  created_at: string;
 }
 
 interface DbDispute {
@@ -65,7 +66,6 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
 
   const categories = getCategories();
-  const localUsers = getUsers();
 
   useEffect(() => {
     if (!user || !isCurrentUserAdmin()) { navigate("/home"); return; }
@@ -77,13 +77,13 @@ export default function AdminPanel() {
     const [listingsRes, ordersRes, walletsRes, disputesRes] = await Promise.all([
       supabase.from("listings").select("*").order("created_at", { ascending: false }),
       supabase.from("orders").select("*").order("created_at", { ascending: false }),
-      supabase.from("wallets").select("username, ltc_balance"),
+      supabase.from("wallets").select("username, ltc_balance, created_at"),
       supabase.from("disputes" as any).select("*").order("created_at", { ascending: false }),
     ]);
     if (listingsRes.data) setListings(listingsRes.data);
     if (ordersRes.data) setOrders(ordersRes.data);
-    if (walletsRes.data) setWallets(walletsRes.data);
-    if (disputesRes.data) setAllDisputes(disputesRes.data as DbDispute[]);
+    if (walletsRes.data) setWallets(walletsRes.data as DbWallet[]);
+    if (disputesRes.data) setAllDisputes(disputesRes.data as unknown as DbDispute[]);
     setLoading(false);
   };
 
@@ -171,7 +171,7 @@ export default function AdminPanel() {
               {tab === 'overview' && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                   {[
-                    { label: "Benutzer", value: localUsers.length, icon: "👤" },
+                    { label: "Benutzer", value: wallets.length, icon: "👤" },
                     { label: "Produkte", value: listings.length, icon: "📦" },
                     { label: "Kategorien", value: categories.length, icon: "🏷" },
                     { label: "Bestellungen", value: orders.length, icon: "🛒" },
@@ -270,14 +270,13 @@ export default function AdminPanel() {
 
               {tab === 'users' && (
                 <table className="bm-table">
-                  <thead><tr><th>Username</th><th style={{ width: 70 }}>Rolle</th><th style={{ width: 90 }}>Guthaben (LTC)</th><th style={{ width: 80 }}>Beitritt</th></tr></thead>
+                  <thead><tr><th>Username</th><th style={{ width: 90 }}>Guthaben (LTC)</th><th style={{ width: 120 }}>Registriert</th></tr></thead>
                   <tbody>
-                    {localUsers.map(u => (
-                      <tr key={u.username}>
-                        <td style={{ fontWeight: 500 }}>{u.username}</td>
-                        <td>{u.isAdmin ? <span className="bm-badge" style={{ background: "hsl(0 50% 25%)", color: "hsl(0 70% 70%)" }}>Admin</span> : <span className="bm-badge">User</span>}</td>
-                        <td className="bm-ltc">{getWalletBalance(u.username).toFixed(4)}</td>
-                        <td className="bm-dim" style={{ fontSize: 11 }}>{u.joinDate}</td>
+                    {wallets.map(w => (
+                      <tr key={w.username}>
+                        <td style={{ fontWeight: 500 }}>{w.username}</td>
+                        <td className="bm-ltc">{w.ltc_balance.toFixed(4)}</td>
+                        <td className="bm-dim" style={{ fontSize: 11 }}>{new Date(w.created_at).toLocaleDateString("de-DE")}</td>
                       </tr>
                     ))}
                   </tbody>
