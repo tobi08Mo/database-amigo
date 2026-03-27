@@ -78,7 +78,7 @@ export default function AdminPanel() {
       supabase.from("listings").select("*").order("created_at", { ascending: false }),
       supabase.from("orders").select("*").order("created_at", { ascending: false }),
       supabase.from("wallets").select("username, ltc_balance"),
-      supabase.from("disputes").select("*").order("created_at", { ascending: false }),
+      supabase.from("disputes" as any).select("*").order("created_at", { ascending: false }),
     ]);
     if (listingsRes.data) setListings(listingsRes.data);
     if (ordersRes.data) setOrders(ordersRes.data);

@@ -130,7 +130,7 @@ export default function Dashboard() {
   const handleOpenDispute = async (order: DBOrder) => {
     if (!disputeReason.trim()) { alert("Bitte Grund angeben."); return; }
     if (!confirm("Rückerstattung beantragen? Ein Admin wird den Fall prüfen.")) return;
-    await supabase.from("disputes").insert({
+    await supabase.from("disputes" as any).insert({
       order_id: order.id,
       buyer: order.buyer,
       seller: order.seller,
