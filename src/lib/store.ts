@@ -110,10 +110,17 @@ function saveUsers(users: User[]) {
   store_set('bm_users', JSON.stringify(users));
 }
 export function registerUser(username: string, password: string, isAdmin = false): User | null {
+  if (username.length < 2 || username.length > 50) return null;
+  if (password.length < 4) return null;
+  // Sanitize username
+  const cleanUsername = username.replace(/[<>"'&]/g, '').trim();
+  if (!cleanUsername) return null;
+  
   const users = getUsers();
-  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) return null;
+  if (users.find(u => u.username.toLowerCase() === cleanUsername.toLowerCase())) return null;
+  const hashedPw = hashPasswordSync(password);
   const user: User = {
-    username, password, joinDate: new Date().toISOString().split('T')[0],
+    username: cleanUsername, password: hashedPw, joinDate: new Date().toISOString().split('T')[0],
     feedbackScore: 0, totalSales: 0, ltcBalance: 0,
     ltcAddress: generateLtcAddress(), bio: '', isAdmin
   };
@@ -122,9 +129,21 @@ export function registerUser(username: string, password: string, isAdmin = false
   return user;
 }
 export function loginUser(username: string, password: string): User | null {
-  const user = getUsers().find(u => u.username === username && u.password === password);
-  if (user) store_set('bm_currentUser', username);
-  return user || null;
+  const hashedPw = hashPasswordSync(password);
+  const user = getUsers().find(u => u.username === username && u.password === hashedPw);
+  // Also support legacy plaintext passwords (migrate on login)
+  if (!user) {
+    const legacyUser = getUsers().find(u => u.username === username && u.password === password);
+    if (legacyUser) {
+      // Migrate to hashed password
+      updateUser(username, { password: hashPasswordSync(password) });
+      store_set('bm_currentUser', username);
+      return legacyUser;
+    }
+    return null;
+  }
+  store_set('bm_currentUser', username);
+  return user;
 }
 export function getCurrentUser(): User | null {
   const name = store_get('bm_currentUser');
