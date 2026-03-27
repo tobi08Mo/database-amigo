@@ -283,6 +283,70 @@ export default function AdminPanel() {
                   </tbody>
                 </table>
               )}
+
+              {tab === 'disputes' && (
+                <>
+                  <h2 style={{ color: "hsl(0 70% 65%)" }}>⚖️ Dispute-Fälle</h2>
+                  {allDisputes.length === 0 && <p className="bm-dim" style={{ textAlign: "center" }}>Keine Disputes.</p>}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {allDisputes.map(d => {
+                      const order = orders.find(o => o.id === d.order_id);
+                      return (
+                        <div key={d.id} className="bm-card" style={{
+                          padding: 14,
+                          borderLeft: d.status === 'open' ? "3px solid hsl(0 70% 50%)" : "3px solid hsl(120 60% 40%)",
+                        }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: 13 }}>
+                                {order?.product_title || "Unbekannt"}
+                                <span style={{
+                                  marginLeft: 8, fontSize: 10, fontWeight: 700, padding: "2px 6px",
+                                  background: d.status === 'open' ? "hsl(0 50% 20%)" : "hsl(120 40% 18%)",
+                                  color: d.status === 'open' ? "hsl(0 70% 65%)" : "hsl(120 60% 55%)",
+                                }}>
+                                  {d.status === 'open' ? 'OFFEN' : 'GELÖST'}
+                                </span>
+                                {d.resolution && (
+                                  <span style={{ marginLeft: 6, fontSize: 10, color: "hsl(0 0% 60%)" }}>
+                                    ({d.resolution === 'buyer' ? 'Käufer erstattet' : d.resolution === 'seller' ? 'Verkäufer bezahlt' : '50/50'})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="bm-dim" style={{ fontSize: 11, marginTop: 2 }}>
+                                Käufer: {d.buyer} · Verkäufer: {d.seller} · {order ? `${order.price_eur.toFixed(2)} €` : ''} · {new Date(d.created_at).toLocaleString("de-DE")}
+                              </div>
+                              <div style={{ fontSize: 11, marginTop: 4, fontStyle: "italic" }} className="bm-dim">
+                                Grund: "{d.reason}"
+                              </div>
+                            </div>
+                            <button
+                              className="bm-btn-secondary"
+                              onClick={() => setExpandedDispute(expandedDispute === d.id ? null : d.id)}
+                              style={{ fontSize: 11 }}
+                            >
+                              {expandedDispute === d.id ? "Schließen" : "💬 Chat öffnen"}
+                            </button>
+                          </div>
+                          {expandedDispute === d.id && order && (
+                            <DisputeChat
+                              disputeId={d.id}
+                              currentUser={user!.username}
+                              buyer={d.buyer}
+                              seller={d.seller}
+                              status={d.status}
+                              priceEur={order.price_eur}
+                              priceLtc={order.price_ltc}
+                              isAdmin={true}
+                              onResolved={loadData}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
