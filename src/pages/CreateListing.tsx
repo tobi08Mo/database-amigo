@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import RetroHeader from "@/components/RetroHeader";
 import RetroFooter from "@/components/RetroFooter";
-import { getCurrentUser, getCategories } from "@/lib/store";
+import { getCategories } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useLtcEurRate } from "@/hooks/useLtcEurRate";
 
