@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getCurrentUser, logout, isCurrentUserAdmin } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -48,10 +48,10 @@ const IconMessages = () => (
 );
 
 export default function RetroHeader() {
-  const user = getCurrentUser();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAdmin = isCurrentUserAdmin();
+  const isAdmin = user?.isAdmin ?? false;
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -76,10 +76,9 @@ export default function RetroHeader() {
     return () => { supabase.removeChannel(channel); };
   }, [user?.username]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
-    window.location.reload();
   };
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
@@ -115,7 +114,6 @@ export default function RetroHeader() {
           )}
           <span style={{ color: "hsl(0 0% 25%)", margin: "0 4px" }}>|</span>
           <Link to={`/profile/${user?.username}`} style={{ color: "hsl(0 0% 80%)" }}>{user?.username}</Link>
-          <span className="bm-ltc" style={{ fontSize: 11 }}>{user?.ltcBalance.toFixed(4)} LTC</span>
           <button onClick={handleLogout}>Logout</button>
         </div>
       </div>
