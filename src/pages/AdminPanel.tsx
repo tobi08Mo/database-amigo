@@ -69,7 +69,7 @@ export default function AdminPanel() {
   const categories = getCategories();
 
   useEffect(() => {
-    if (!user || !isCurrentUserAdmin()) { navigate("/home"); return; }
+    if (!user || !isAdmin) { navigate("/home"); return; }
     loadData();
   }, []);
 
