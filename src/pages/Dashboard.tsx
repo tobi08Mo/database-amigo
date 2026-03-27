@@ -296,10 +296,12 @@ export default function Dashboard() {
                     )}
                   </h2>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-                    {sellOrders.map(o => (
+                    {sellOrders.map(o => {
+                      const dispute = disputes[o.id];
+                      return (
                       <div key={o.id} className="bm-card" style={{
                         padding: 12,
-                        borderLeft: (o.status === 'escrow' || o.status === 'delivered') ? "3px solid hsl(48 80% 50%)" : "3px solid hsl(0 0% 25%)",
+                        borderLeft: o.status === 'disputed' ? "3px solid hsl(0 70% 50%)" : (o.status === 'escrow' || o.status === 'delivered') ? "3px solid hsl(48 80% 50%)" : "3px solid hsl(0 0% 25%)",
                       }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                           <div>
@@ -307,6 +309,9 @@ export default function Dashboard() {
                               {o.product_title}
                               {o.status === 'escrow' && (
                                 <span style={{ color: "hsl(48 100% 60%)", fontSize: 11, marginLeft: 8 }}>⚠️ Warte auf Lieferung</span>
+                              )}
+                              {o.status === 'disputed' && (
+                                <span style={{ color: "hsl(0 70% 60%)", fontSize: 11, marginLeft: 8 }}>⚠️ Dispute eröffnet</span>
                               )}
                             </div>
                             <div className="bm-dim" style={{ fontSize: 11 }}>
@@ -332,8 +337,21 @@ export default function Dashboard() {
                         {expandedOrder === o.id && (
                           <OrderDelivery orderId={o.id} currentUser={user.username} seller={o.seller} buyer={o.buyer} />
                         )}
+                        {dispute && (
+                          <DisputeChat
+                            disputeId={dispute.id}
+                            currentUser={user.username}
+                            buyer={o.buyer}
+                            seller={o.seller}
+                            status={dispute.status}
+                            priceEur={o.price_eur}
+                            priceLtc={o.price_ltc}
+                            onResolved={loadData}
+                          />
+                        )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </>
               )}
