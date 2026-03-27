@@ -103,6 +103,10 @@ export default function RetroHeader() {
           <IconWallet />
           <span>Wallet</span>
         </Link>
+        <Link to="/messages" className={`bm-bottom-nav-item ${isActive("/messages") ? "active" : ""}`}>
+          <IconMessages />
+          <span>Inbox</span>
+        </Link>
         <Link to="/dashboard" className={`bm-bottom-nav-item ${isActive("/dashboard") ? "active" : ""}`}>
           <IconProfile />
           <span>Profil</span>
