@@ -12,6 +12,7 @@ import CreateListing from "./pages/CreateListing";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import Wallet from "./pages/Wallet";
+import Messages from "./pages/Messages";
 import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
